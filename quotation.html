@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aethrify — Quotation Generator</title>
+
+  <!-- jsPDF + AutoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg0: #03030A; --bg1: #07071A; --bg2: #0C0C22;
+      --glass: rgba(255,255,255,.04);
+      --border: rgba(255,255,255,.09);
+      --border-mid: rgba(255,255,255,.14);
+      --violet: #7C3AED; --violet-l: #8B5CF6;
+      --cyan: #06B6D4; --amber: #F59E0B; --green: #10B981; --red: #EF4444;
+      --grad: linear-gradient(135deg,#7C3AED,#06B6D4);
+      --grad-cta: linear-gradient(135deg,#F59E0B,#EF4444);
+      --glow: 0 0 40px rgba(124,58,237,.35);
+      --text0: #F8FAFC; --text1: #94A3B8; --text2: #475569;
+      --f-d: 'Syne',sans-serif; --f-b: 'Inter',sans-serif;
+      --r: 14px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{font-size:16px;scroll-behavior:smooth}
+    body{background:var(--bg0);color:var(--text0);font-family:var(--f-b);min-height:100vh;padding:0 0 80px}
+
+    /* ---- HEADER ---- */
+    .topbar{
+      background:rgba(3,3,10,.9);backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+      padding:16px 0; position:sticky;top:0;z-index:100;
+    }
+    .topbar-inner{
+      max-width:1100px;margin:0 auto;padding:0 28px;
+      display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    }
+    .logo{display:flex;align-items:center;gap:10px;font-family:var(--f-d);font-size:20px;font-weight:800;letter-spacing:-.02em}
+    .logo-mark{width:36px;height:36px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;box-shadow:var(--glow)}
+    .logo-sub{font-size:12px;font-weight:500;color:var(--text2);font-family:var(--f-b);letter-spacing:.1em;text-transform:uppercase;margin-left:4px;align-self:flex-end;margin-bottom:2px}
+
+    .btn{
+      display:inline-flex;align-items:center;gap:7px;
+      padding:11px 24px;border-radius:var(--r);
+      font-size:14px;font-weight:600;cursor:pointer;border:none;
+      font-family:var(--f-b);transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .25s;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{background:var(--grad);color:#fff}
+    .btn-primary:hover{box-shadow:var(--glow)}
+    .btn-ghost{background:var(--glass);border:1px solid var(--border-mid);color:var(--text0)}
+    .btn-ghost:hover{border-color:var(--violet-l);background:rgba(124,58,237,.1)}
+    .btn-danger{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+    .btn-danger:hover{background:rgba(239,68,68,.25);box-shadow:0 0 20px rgba(239,68,68,.25)}
+    .btn-sm{padding:7px 16px;font-size:13px}
+    .btn-xs{padding:5px 12px;font-size:12px}
+
+    /* ---- MAIN LAYOUT ---- */
+    .wrap{max-width:1100px;margin:36px auto 0;padding:0 28px;display:grid;grid-template-columns:1fr 380px;gap:28px;align-items:start}
+    @media(max-width:860px){.wrap{grid-template-columns:1fr}}
+
+    /* ---- CARD ---- */
+    .card{background:var(--glass);border:1px solid var(--border);border-radius:20px;padding:28px}
+    .card-title{font-family:var(--f-d);font-size:17px;font-weight:700;margin-bottom:22px;display:flex;align-items:center;gap:8px}
+    .card-title span{font-size:12px;font-weight:500;font-family:var(--f-b);color:var(--text2);margin-left:auto;letter-spacing:.08em;text-transform:uppercase}
+
+    /* ---- FORM ---- */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .form-grid.cols-1{grid-template-columns:1fr}
+    .form-grid.cols-3{grid-template-columns:1fr 1fr 1fr}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field.span2{grid-column:span 2}
+    label{font-size:12px;font-weight:600;color:var(--text1);letter-spacing:.06em;text-transform:uppercase}
+    input,textarea,select{
+      background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:var(--r);padding:11px 14px;
+      font-family:var(--f-b);font-size:14px;color:var(--text0);
+      outline:none;transition:border-color .2s,background .2s;resize:vertical;
+      -webkit-appearance:none;
+    }
+    input:focus,textarea:focus,select:focus{border-color:var(--violet-l);background:rgba(124,58,237,.06)}
+    input::placeholder,textarea::placeholder{color:var(--text2)}
+    select option{background:#0C0C22;color:var(--text0)}
+    textarea{min-height:80px}
+
+    /* ---- DIVIDER ---- */
+    .divider{height:1px;background:var(--border);margin:24px 0}
+
+    /* ---- LINE ITEMS ---- */
+    .items-table{width:100%;border-collapse:collapse;margin-top:4px}
+    .items-table th{
+      font-size:11px;font-weight:600;color:var(--text2);
+      letter-spacing:.1em;text-transform:uppercase;
+      padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);
+    }
+    .items-table th:last-child,.items-table td:last-child{text-align:right}
+    .items-table td{padding:8px 6px;vertical-align:middle}
+    .items-table tr:not(:last-child) td{border-bottom:1px solid var(--border)}
+
+    .item-input{
+      background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:8px;padding:8px 10px;
+      font-family:var(--f-b);font-size:13px;color:var(--text0);
+      outline:none;transition:border-color .2s;width:100%;
+    }
+    .item-input:focus{border-color:var(--violet-l);background:rgba(124,58,237,.06)}
+    .item-input.num{text-align:right;width:90px}
+    .item-input.desc{width:100%}
+    .item-amount{
+      font-family:'Space Grotesk',monospace;font-size:14px;font-weight:600;
+      color:var(--text0);min-width:90px;text-align:right;
+      padding:8px 10px;display:block;
+    }
+    .remove-btn{
+      background:none;border:none;cursor:pointer;
+      color:var(--text2);font-size:16px;padding:4px 8px;border-radius:6px;
+      transition:color .2s,background .2s;
+    }
+    .remove-btn:hover{color:var(--red);background:rgba(239,68,68,.1)}
+
+    .add-row-btn{
+      display:flex;align-items:center;gap:6px;
+      background:none;border:1px dashed var(--border);
+      border-radius:var(--r);padding:10px 14px;
+      font-size:13px;font-weight:500;color:var(--text1);
+      cursor:pointer;width:100%;margin-top:12px;
+      transition:border-color .2s,color .2s,background .2s;
+      font-family:var(--f-b);
+    }
+    .add-row-btn:hover{border-color:var(--violet-l);color:var(--violet-l);background:rgba(124,58,237,.06)}
+
+    /* ---- TOTALS ---- */
+    .totals-box{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-top:18px}
+    .total-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px}
+    .total-row:not(:last-child){border-bottom:1px solid var(--border)}
+    .total-label{color:var(--text1)}
+    .total-val{font-family:'Space Grotesk',monospace;font-weight:600}
+    .total-row.grand .total-label{font-weight:700;font-size:16px;color:var(--text0)}
+    .total-row.grand .total-val{font-size:20px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    /* ---- SIDEBAR ---- */
+    .sidebar{display:flex;flex-direction:column;gap:20px;position:sticky;top:80px}
+
+    /* ---- STATUS / BADGE ---- */
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:5px 12px;border-radius:100px;font-size:12px;font-weight:700;
+    }
+    .badge.draft{background:rgba(71,85,105,.3);border:1px solid rgba(71,85,105,.5);color:var(--text1)}
+    .badge.sent{background:rgba(6,182,212,.15);border:1px solid rgba(6,182,212,.3);color:var(--cyan)}
+    .badge.accepted{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:var(--green)}
+    .badge.declined{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+    .badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+    /* ---- PREVIEW CARD ---- */
+    .preview-meta{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+    .preview-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;font-size:13px}
+    .preview-key{color:var(--text2);flex-shrink:0}
+    .preview-val{color:var(--text0);font-weight:500;text-align:right;word-break:break-word}
+
+    /* ---- NOTICE ---- */
+    .notice{
+      padding:12px 16px;border-radius:var(--r);
+      background:rgba(6,182,212,.08);border:1px solid rgba(6,182,212,.2);
+      font-size:13px;color:var(--cyan);line-height:1.55;
+    }
+
+    /* ---- CURRENCY ---- */
+    .currency-prefix{position:relative}
+    .currency-prefix::before{
+      content:attr(data-prefix);
+      position:absolute;left:12px;top:50%;transform:translateY(-50%);
+      font-size:14px;color:var(--text2);pointer-events:none;
+    }
+    .currency-prefix input{padding-left:28px}
+
+    /* ---- GRADIENT DIVIDER ---- */
+    .grad-line{height:2px;background:var(--grad);border-radius:2px;margin:0 0 24px}
+
+    /* ---- FOOTER NOTE ---- */
+    .form-note{font-size:12px;color:var(--text2);line-height:1.6;margin-top:8px}
+
+    /* ---- ANIMATIONS ---- */
+    @keyframes fade-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .line-item-row{animation:fade-in .25s ease both}
+
+    /* scrollbar */
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-track{background:var(--bg0)}
+    ::-webkit-scrollbar-thumb{background:var(--grad);border-radius:2px}
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <div class="logo-mark">A</div>
+      Aethrify
+      <span class="logo-sub">Quotation Generator</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="resetForm()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset
+      </button>
+      <button class="btn btn-primary" onclick="generatePDF()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="wrap">
+  <!-- LEFT: Form -->
+  <div style="display:flex;flex-direction:column;gap:22px">
+
+    <!-- Quotation Info -->
+    <div class="card">
+      <div class="grad-line"></div>
+      <div class="card-title">Quotation Details <span>Step 1</span></div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Quotation Number</label>
+          <input type="text" id="quoteNum" value="AET-2025-001" placeholder="AET-2025-001">
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="quoteDate">
+        </div>
+        <div class="field">
+          <label>Valid Until</label>
+          <input type="date" id="validUntil">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="quoteStatus">
+            <option value="Draft">Draft</option>
+            <option value="Sent">Sent</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Declined">Declined</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Currency</label>
+          <select id="currency" onchange="updateCurrency()">
+            <option value="₹">INR (₹)</option>
+            <option value="$">USD ($)</option>
+            <option value="€">EUR (€)</option>
+            <option value="£">GBP (£)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tax / GST %</label>
+          <input type="number" id="taxRate" value="18" min="0" max="100" step="0.5" oninput="calcTotals()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Client Info -->
+    <div class="card">
+      <div class="card-title">Client Details <span>Step 2</span></div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Client / Company Name</label>
+          <input type="text" id="clientName" placeholder="Acme Corporation">
+        </div>
+        <div class="field">
+          <label>Contact Person</label>
+          <input type="text" id="clientContact" placeholder="John Smith">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="clientEmail" placeholder="john@acme.com">
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" id="clientPhone" placeholder="+91 98765 43210">
+        </div>
+        <div class="field span2">
+          <label>Address</label>
+          <textarea id="clientAddress" rows="2" placeholder="123 Business Park, Mumbai, Maharashtra 400001"></textarea>
+        </div>
+        <div class="field">
+          <label>GSTIN (optional)</label>
+          <input type="text" id="clientGST" placeholder="22AAAAA0000A1Z5">
+        </div>
+        <div class="field">
+          <label>PAN (optional)</label>
+          <input type="text" id="clientPAN" placeholder="AAAAA0000A">
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Info -->
+    <div class="card">
+      <div class="card-title">Project Details <span>Step 3</span></div>
+      <div class="form-grid cols-1">
+        <div class="field">
+          <label>Project / Engagement Title</label>
+          <input type="text" id="projectTitle" placeholder="e.g. E-Commerce Website Development & Digital Marketing">
+        </div>
+        <div class="field">
+          <label>Project Description</label>
+          <textarea id="projectDesc" rows="3" placeholder="Brief overview of scope, deliverables, or engagement summary..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Line Items -->
+    <div class="card">
+      <div class="card-title">Services / Line Items <span>Step 4</span></div>
+
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width:38%">Description</th>
+            <th style="width:18%">Category</th>
+            <th style="width:10%">Qty</th>
+            <th style="width:16%">Unit Price</th>
+            <th style="width:14%">Amount</th>
+            <th style="width:4%"></th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+
+      <button class="add-row-btn" onclick="addRow()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Service / Line Item
+      </button>
+
+      <!-- Totals -->
+      <div class="totals-box">
+        <div class="total-row">
+          <span class="total-label">Subtotal</span>
+          <span class="total-val" id="subtotal">₹0.00</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">Tax / GST (<span id="taxLabel">18</span>%)</span>
+          <span class="total-val" id="taxAmount">₹0.00</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">Discount</span>
+          <span class="total-val">
+            <input type="number" id="discount" value="0" min="0" step="100" oninput="calcTotals()"
+              style="width:90px;text-align:right;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:4px 8px;font-family:'Space Grotesk',monospace;font-size:13px;color:var(--text0);outline:none;">
+          </span>
+        </div>
+        <div class="total-row grand">
+          <span class="total-label">Grand Total</span>
+          <span class="total-val" id="grandTotal">₹0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Terms & Notes -->
+    <div class="card">
+      <div class="card-title">Terms &amp; Notes <span>Step 5</span></div>
+      <div class="form-grid cols-1">
+        <div class="field">
+          <label>Payment Terms</label>
+          <select id="paymentTerms">
+            <option value="50% advance, 50% on delivery">50% advance, 50% on delivery</option>
+            <option value="100% advance payment">100% advance payment</option>
+            <option value="Net 15 days">Net 15 days</option>
+            <option value="Net 30 days">Net 30 days</option>
+            <option value="Milestone-based payments">Milestone-based payments</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Custom Payment Terms (overrides above)</label>
+          <input type="text" id="paymentTermsCustom" placeholder="e.g. 40% on signing, 30% at mid-point, 30% on launch">
+        </div>
+        <div class="field">
+          <label>Terms &amp; Conditions</label>
+          <textarea id="terms" rows="4">1. This quotation is valid for the period specified above.
+2. All prices are in the selected currency and exclusive of applicable taxes unless stated.
+3. Work commences upon receipt of signed acceptance and advance payment.
+4. Aethrify Innovation retains rights to showcase the work in its portfolio.
+5. Any scope additions will be quoted separately.</textarea>
+        </div>
+        <div class="field">
+          <label>Additional Notes</label>
+          <textarea id="notes" rows="3" placeholder="Any special instructions, assumptions, exclusions, or delivery notes..."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Sidebar -->
+  <div class="sidebar">
+
+    <!-- Preview Summary -->
+    <div class="card">
+      <div class="card-title">Preview Summary</div>
+      <div class="preview-meta" id="previewMeta">
+        <div class="preview-row"><span class="preview-key">Quote #</span><span class="preview-val" id="pv-num">AET-2025-001</span></div>
+        <div class="preview-row"><span class="preview-key">Client</span><span class="preview-val" id="pv-client">—</span></div>
+        <div class="preview-row"><span class="preview-key">Project</span><span class="preview-val" id="pv-project">—</span></div>
+        <div class="preview-row"><span class="preview-key">Date</span><span class="preview-val" id="pv-date">—</span></div>
+        <div class="preview-row"><span class="preview-key">Valid Until</span><span class="preview-val" id="pv-valid">—</span></div>
+        <div class="preview-row"><span class="preview-key">Items</span><span class="preview-val" id="pv-items">0</span></div>
+        <div class="preview-row"><span class="preview-key">Status</span><span class="preview-val" id="pv-status">—</span></div>
+        <div class="preview-row" style="padding-top:10px;border-top:1px solid var(--border);margin-top:4px">
+          <span class="preview-key" style="font-weight:700;color:var(--text0)">Grand Total</span>
+          <span class="preview-val" id="pv-total" style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:17px;font-weight:800">₹0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Our Details -->
+    <div class="card">
+      <div class="card-title">Your Details (Aethrify)</div>
+      <div class="form-grid cols-1" style="gap:12px">
+        <div class="field">
+          <label>Company Name</label>
+          <input type="text" id="ourName" value="Aethrify Innovation">
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="ourEmail" value="hello@aethrify.xyz">
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" id="ourPhone" value="+91 XXXXX XXXXX">
+        </div>
+        <div class="field">
+          <label>Website</label>
+          <input type="text" id="ourWebsite" value="aethrify.xyz">
+        </div>
+        <div class="field">
+          <label>GSTIN</label>
+          <input type="text" id="ourGST" placeholder="Your GSTIN">
+        </div>
+        <div class="field">
+          <label>Bank / UPI for Payment</label>
+          <input type="text" id="ourPayment" placeholder="UPI: hello@aethrify / A/c details">
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card">
+      <div class="card-title">Generate</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="generatePDF()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </button>
+        <button class="btn btn-ghost" style="width:100%;justify-content:center" onclick="saveLocal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Draft
+        </button>
+        <button class="btn btn-danger btn-sm" style="width:100%;justify-content:center" onclick="resetForm()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Reset Form
+        </button>
+      </div>
+      <p class="form-note" style="margin-top:14px">PDF is generated locally — no data leaves your browser.</p>
+    </div>
+
+    <div class="notice">
+      💡 <strong>Tip:</strong> Fill all fields before downloading. The PDF includes your Aethrify branding, gradient header, itemised table, and all terms automatically.
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   STATE
+============================================================ */
+let rows = [];
+let currSymbol = '₹';
+let rowId = 0;
+
+const CATS = ['Web Development','Digital Marketing','Mobile App','White-Label','UI/UX Design','SEO / GEO','Consulting','Hosting / Infra','Support & Maintenance','Other'];
+
+/* ============================================================
+   INIT
+============================================================ */
+window.onload = () => {
+  const today = new Date();
+  const valid  = new Date(); valid.setDate(today.getDate() + 30);
+  document.getElementById('quoteDate').value   = fmt(today);
+  document.getElementById('validUntil').value  = fmt(valid);
+  addRow({ desc:'Website Design & Development', cat:'Web Development',     qty:1, price:50000 });
+  addRow({ desc:'SEO & Digital Marketing Setup', cat:'Digital Marketing',  qty:1, price:15000 });
+  addRow({ desc:'Mobile App Development (iOS + Android)', cat:'Mobile App',qty:1, price:80000 });
+  livePreview();
+};
+
+function fmt(d) { return d.toISOString().split('T')[0]; }
+function fmtDate(s) {
+  if (!s) return '—';
+  const d = new Date(s + 'T00:00:00');
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+}
+function money(n) { return currSymbol + Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+/* ============================================================
+   ROWS
+============================================================ */
+function addRow(data = {}) {
+  const id = ++rowId;
+  const r = {
+    id,
+    desc:  data.desc  || '',
+    cat:   data.cat   || 'Web Development',
+    qty:   data.qty   || 1,
+    price: data.price || 0,
+  };
+  rows.push(r);
+  renderRow(r);
+  calcTotals();
+}
+
+function renderRow(r) {
+  const tbody = document.getElementById('itemsBody');
+  const catOpts = CATS.map(c => `<option${c===r.cat?' selected':''}>${c}</option>`).join('');
+  const tr = document.createElement('tr');
+  tr.id  = `row-${r.id}`;
+  tr.className = 'line-item-row';
+  tr.innerHTML = `
+    <td><input class="item-input desc" type="text" value="${r.desc}" placeholder="Service description…" oninput="updateRow(${r.id},'desc',this.value)"></td>
+    <td><select class="item-input" style="width:100%;font-size:12px" onchange="updateRow(${r.id},'cat',this.value)">${catOpts}</select></td>
+    <td><input class="item-input num" type="number" value="${r.qty}" min="0.5" step="0.5" oninput="updateRow(${r.id},'qty',+this.value)"></td>
+    <td><input class="item-input num" type="number" value="${r.price}" min="0" step="100" oninput="updateRow(${r.id},'price',+this.value)"></td>
+    <td><span class="item-amount" id="amt-${r.id}">${money(r.qty * r.price)}</span></td>
+    <td><button class="remove-btn" onclick="removeRow(${r.id})" title="Remove">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function updateRow(id, field, val) {
+  const r = rows.find(r => r.id === id);
+  if (!r) return;
+  r[field] = val;
+  const el = document.getElementById(`amt-${id}`);
+  if (el) el.textContent = money(r.qty * r.price);
+  calcTotals();
+}
+
+function removeRow(id) {
+  rows = rows.filter(r => r.id !== id);
+  const el = document.getElementById(`row-${id}`);
+  if (el) el.remove();
+  calcTotals();
+}
+
+/* ============================================================
+   TOTALS
+============================================================ */
+function calcTotals() {
+  const sub  = rows.reduce((s, r) => s + r.qty * r.price, 0);
+  const tax  = parseFloat(document.getElementById('taxRate').value) || 0;
+  const disc = parseFloat(document.getElementById('discount').value) || 0;
+  const taxAmt = (sub - disc) * tax / 100;
+  const grand  = sub - disc + taxAmt;
+
+  document.getElementById('subtotal').textContent  = money(sub);
+  document.getElementById('taxLabel').textContent  = tax;
+  document.getElementById('taxAmount').textContent = money(taxAmt);
+  document.getElementById('grandTotal').textContent = money(grand);
+
+  // preview sidebar
+  document.getElementById('pv-total').textContent = money(grand);
+  document.getElementById('pv-items').textContent = rows.length;
+  livePreview();
+}
+
+function livePreview() {
+  document.getElementById('pv-num').textContent     = document.getElementById('quoteNum').value    || '—';
+  document.getElementById('pv-client').textContent  = document.getElementById('clientName').value  || '—';
+  document.getElementById('pv-project').textContent = document.getElementById('projectTitle').value || '—';
+  document.getElementById('pv-date').textContent    = fmtDate(document.getElementById('quoteDate').value);
+  document.getElementById('pv-valid').textContent   = fmtDate(document.getElementById('validUntil').value);
+  const s = document.getElementById('quoteStatus').value;
+  const clr = {Draft:'#94A3B8',Sent:'#06B6D4',Accepted:'#10B981',Declined:'#EF4444'}[s]||'#94A3B8';
+  document.getElementById('pv-status').innerHTML = `<span style="color:${clr};font-weight:700">● ${s}</span>`;
+}
+
+// live update on any input
+document.addEventListener('input',  livePreview);
+document.addEventListener('change', livePreview);
+
+function updateCurrency() {
+  currSymbol = document.getElementById('currency').value;
+  rows.forEach(r => {
+    const el = document.getElementById(`amt-${r.id}`);
+    if (el) el.textContent = money(r.qty * r.price);
+  });
+  calcTotals();
+}
+
+/* ============================================================
+   RESET / SAVE
+============================================================ */
+function resetForm() {
+  if (!confirm('Reset all fields? This cannot be undone.')) return;
+  rows = []; rowId = 0;
+  document.getElementById('itemsBody').innerHTML = '';
+  document.getElementById('quoteNum').value = 'AET-2025-001';
+  ['clientName','clientContact','clientEmail','clientPhone','clientAddress','clientGST','clientPAN',
+   'projectTitle','projectDesc','notes','paymentTermsCustom'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('discount').value = '0';
+  addRow();
+  calcTotals();
+}
+
+function saveLocal() {
+  const data = {
+    quoteNum: g('quoteNum'), quoteDate: g('quoteDate'), validUntil: g('validUntil'),
+    quoteStatus: g('quoteStatus'), currency: g('currency'), taxRate: g('taxRate'),
+    clientName: g('clientName'), clientContact: g('clientContact'), clientEmail: g('clientEmail'),
+    clientPhone: g('clientPhone'), clientAddress: g('clientAddress'), clientGST: g('clientGST'), clientPAN: g('clientPAN'),
+    projectTitle: g('projectTitle'), projectDesc: g('projectDesc'),
+    discount: g('discount'), paymentTerms: g('paymentTerms'), paymentTermsCustom: g('paymentTermsCustom'),
+    terms: g('terms'), notes: g('notes'),
+    ourName: g('ourName'), ourEmail: g('ourEmail'), ourPhone: g('ourPhone'),
+    ourWebsite: g('ourWebsite'), ourGST: g('ourGST'), ourPayment: g('ourPayment'),
+    rows,
+  };
+  localStorage.setItem('aet_quote_draft', JSON.stringify(data));
+  showToast('Draft saved to browser storage ✓');
+}
+
+function g(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:rgba(16,185,129,.9);color:#fff;padding:12px 24px;border-radius:100px;font-weight:600;font-size:14px;z-index:9999;backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,.4)';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+/* ============================================================
+   PDF GENERATION
+============================================================ */
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, H = 297;
+  const margin = 18;
+  let y = 0;
+
+  // ---- helpers ----
+  const rgb = (hex) => {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return [r,g,b];
+  };
+  const setFont = (style='normal', size=10, color=[248,250,252]) => {
+    doc.setFont('helvetica', style);
+    doc.setFontSize(size);
+    doc.setTextColor(...color);
+  };
+  const sub = rows.reduce((s, r) => s + r.qty * r.price, 0);
+  const taxRate = parseFloat(g('taxRate')) || 0;
+  const disc    = parseFloat(g('discount')) || 0;
+  const taxAmt  = (sub - disc) * taxRate / 100;
+  const grand   = sub - disc + taxAmt;
+  const sym     = g('currency') || '₹';
+  const mny     = (n) => sym + Number(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+  // ===============================================================
+  // PAGE 1 – HEADER
+  // ===============================================================
+
+  // Dark header background
+  doc.setFillColor(3,3,10);
+  doc.rect(0, 0, W, H, 'F');
+
+  // Purple gradient header band (approximate with solid + overlay)
+  doc.setFillColor(12,12,34);
+  doc.rect(0, 0, W, 52, 'F');
+
+  // Gradient accent bar top
+  doc.setFillColor(124,58,237);
+  doc.rect(0, 0, W/2, 3, 'F');
+  doc.setFillColor(6,182,212);
+  doc.rect(W/2, 0, W/2, 3, 'F');
+
+  // Logo mark box
+  doc.setFillColor(124,58,237);
+  doc.roundedRect(margin, 10, 24, 24, 4, 4, 'F');
+  doc.setFillColor(6,182,212);
+  doc.triangle(margin+12, 10, margin+24, 34, margin+24, 10, 'F');
+  setFont('bold', 14, [255,255,255]);
+  doc.text('A', margin + 7.5, 25.5);
+
+  // Company name
+  setFont('bold', 18, [248,250,252]);
+  doc.text('Aethrify', margin + 30, 20);
+  setFont('normal', 8, [148,163,184]);
+  doc.text('Innovation', margin + 30, 27);
+  doc.text(g('ourWebsite') || 'aethrify.xyz', margin + 30, 33);
+
+  // QUOTATION title (right side)
+  setFont('bold', 22, [248,250,252]);
+  doc.text('QUOTATION', W - margin, 20, { align:'right' });
+  setFont('normal', 9, [148,163,184]);
+  doc.text(`# ${g('quoteNum') || 'AET-2025-001'}`, W - margin, 28, { align:'right' });
+
+  // Status badge
+  const status = g('quoteStatus') || 'Draft';
+  const statusColors = { Draft:[71,85,105], Sent:[6,182,212], Accepted:[16,185,129], Declined:[239,68,68] };
+  const sc = statusColors[status] || [71,85,105];
+  doc.setFillColor(...sc);
+  doc.roundedRect(W - margin - 28, 30, 28, 9, 2, 2, 'F');
+  doc.setFillColor(...sc.map(v=>Math.max(0,v-30)));
+  setFont('bold', 8, [255,255,255]);
+  doc.text(status.toUpperCase(), W - margin - 14, 36.5, { align:'center' });
+
+  y = 56;
+
+  // ---- Meta Row: Date / Valid / Client ----
+  // Two info columns
+  const infoBoxW = (W - margin*2 - 8) / 2;
+
+  // Box 1: Quotation Info
+  doc.setFillColor(12,12,34);
+  doc.roundedRect(margin, y, infoBoxW, 38, 3, 3, 'F');
+  doc.setDrawColor(255,255,255,0.08); doc.setLineWidth(0.3);
+  doc.roundedRect(margin, y, infoBoxW, 38, 3, 3, 'S');
+
+  setFont('bold', 7, [100,116,139]);
+  doc.text('QUOTATION DATE', margin+6, y+8);
+  setFont('normal', 10, [248,250,252]);
+  doc.text(fmtDate(g('quoteDate')), margin+6, y+16);
+  setFont('bold', 7, [100,116,139]);
+  doc.text('VALID UNTIL', margin+6, y+24);
+  setFont('normal', 10, [248,250,252]);
+  doc.text(fmtDate(g('validUntil')), margin+6, y+32);
+
+  // Payment terms inside box 1 right half
+  setFont('bold', 7, [100,116,139]);
+  doc.text('PAYMENT TERMS', margin + infoBoxW/2, y+8);
+  const pt = g('paymentTermsCustom') || g('paymentTerms') || '50% advance, 50% on delivery';
+  setFont('normal', 8, [148,163,184]);
+  const ptLines = doc.splitTextToSize(pt, infoBoxW/2 - 6);
+  doc.text(ptLines.slice(0,3), margin + infoBoxW/2, y+16);
+
+  // Box 2: Client Info
+  const bx2 = margin + infoBoxW + 8;
+  doc.setFillColor(12,12,34);
+  doc.roundedRect(bx2, y, infoBoxW, 38, 3, 3, 'F');
+  doc.setDrawColor(255,255,255);
+  doc.roundedRect(bx2, y, infoBoxW, 38, 3, 3, 'S');
+
+  setFont('bold', 7, [100,116,139]);
+  doc.text('BILL TO', bx2+6, y+8);
+  setFont('bold', 10, [248,250,252]);
+  doc.text(g('clientName') || 'Client Name', bx2+6, y+16);
+  setFont('normal', 8, [148,163,184]);
+  const clientLines = [
+    g('clientContact') ? `Attn: ${g('clientContact')}` : null,
+    g('clientEmail'),
+    g('clientPhone'),
+    g('clientGST') ? `GSTIN: ${g('clientGST')}` : null,
+  ].filter(Boolean);
+  clientLines.slice(0,3).forEach((l, i) => doc.text(l, bx2+6, y+23+i*5.5));
+
+  y += 46;
+
+  // ---- Project Title ----
+  if (g('projectTitle')) {
+    doc.setFillColor(124,58,237,0.12);
+    doc.roundedRect(margin, y, W - margin*2, 16, 3, 3, 'F');
+    doc.setFillColor(124,58,237);
+    doc.rect(margin, y, 3, 16, 'F');
+    setFont('bold', 12, [248,250,252]);
+    doc.text(g('projectTitle'), margin+10, y+10);
+    y += 22;
+  }
+
+  if (g('projectDesc')) {
+    setFont('normal', 8, [148,163,184]);
+    const descLines = doc.splitTextToSize(g('projectDesc'), W - margin*2);
+    doc.text(descLines.slice(0,3), margin, y);
+    y += descLines.slice(0,3).length * 5 + 6;
+  }
+
+  y += 2;
+
+  // ---- Items Table ----
+  const tableData = rows.map((r, i) => [
+    String(i+1),
+    r.desc,
+    r.cat,
+    String(r.qty),
+    mny(r.price),
+    mny(r.qty * r.price),
+  ]);
+
+  doc.autoTable({
+    startY: y,
+    head: [['#','Description','Category','Qty','Unit Price','Amount']],
+    body: tableData,
+    margin: { left: margin, right: margin },
+    styles: {
+      font: 'helvetica', fontSize: 9,
+      fillColor: [7,7,26], textColor: [248,250,252],
+      lineColor: [255,255,255,0.08], lineWidth: 0.2,
+      cellPadding: 4,
+    },
+    headStyles: {
+      fillColor: [20,20,45], textColor: [148,163,184],
+      fontSize: 8, fontStyle: 'bold', cellPadding: 5,
+    },
+    alternateRowStyles: { fillColor: [10,10,30] },
+    columnStyles: {
+      0: { cellWidth: 8, halign:'center' },
+      1: { cellWidth: 60 },
+      2: { cellWidth: 35 },
+      3: { cellWidth: 14, halign:'right' },
+      4: { cellWidth: 28, halign:'right' },
+      5: { cellWidth: 28, halign:'right', fontStyle:'bold', textColor:[248,250,252] },
+    },
+    didParseCell: (data) => {
+      if (data.row.index !== undefined && data.column.index === 5 && data.section === 'body') {
+        data.cell.styles.textColor = [139,92,246];
+        data.cell.styles.fontStyle = 'bold';
+      }
+    },
+  });
+
+  y = doc.lastAutoTable.finalY + 8;
+
+  // ---- Totals Box ----
+  const totW = 80, totX = W - margin - totW;
+  doc.setFillColor(12,12,34);
+  doc.roundedRect(totX, y, totW, 44, 3, 3, 'F');
+  doc.setDrawColor(255,255,255,0.08); doc.setLineWidth(0.3);
+  doc.roundedRect(totX, y, totW, 44, 3, 3, 'S');
+
+  const totRows = [
+    ['Subtotal', mny(sub)],
+    [`Tax / GST (${taxRate}%)`, mny(taxAmt)],
+    ['Discount', `-${mny(disc)}`],
+  ];
+  let ty = y + 7;
+  totRows.forEach(([label, val]) => {
+    setFont('normal', 8, [100,116,139]);
+    doc.text(label, totX + 5, ty);
+    setFont('normal', 8, [148,163,184]);
+    doc.text(val, totX + totW - 5, ty, { align:'right' });
+    ty += 8;
+  });
+
+  // Grand total row
+  doc.setFillColor(124,58,237,0.25);
+  doc.roundedRect(totX, ty-2, totW, 12, 2, 2, 'F');
+  setFont('bold', 9, [248,250,252]);
+  doc.text('GRAND TOTAL', totX + 5, ty+6);
+  setFont('bold', 11, [139,92,246]);
+  doc.text(mny(grand), totX + totW - 5, ty+6, { align:'right' });
+
+  y = Math.max(y + 50, ty + 18);
+
+  // ---- Terms ----
+  if (y + 30 < H - 30) {
+    doc.setFillColor(7,7,26);
+    doc.roundedRect(margin, y, W - margin*2, 5, 2, 2, 'F');
+    setFont('bold', 8, [100,116,139]);
+    doc.text('TERMS & CONDITIONS', margin + 3, y+3.5);
+    y += 8;
+    setFont('normal', 7, [71,85,105]);
+    const termsLines = doc.splitTextToSize(g('terms') || '', W - margin*2 - 4);
+    const visibleTerms = termsLines.slice(0, Math.floor((H - 35 - y) / 4.5));
+    doc.text(visibleTerms, margin + 2, y);
+    y += visibleTerms.length * 4.5 + 6;
+  }
+
+  if (g('notes') && y + 20 < H - 25) {
+    setFont('bold', 8, [100,116,139]);
+    doc.text('NOTES', margin + 2, y);
+    y += 5;
+    setFont('italic', 8, [71,85,105]);
+    const noteLines = doc.splitTextToSize(g('notes'), W - margin*2 - 4);
+    doc.text(noteLines.slice(0,4), margin + 2, y);
+    y += noteLines.slice(0,4).length * 4.5 + 6;
+  }
+
+  // ---- Footer ----
+  // bottom gradient line
+  doc.setFillColor(124,58,237);
+  doc.rect(0, H-10, W/2, 2, 'F');
+  doc.setFillColor(6,182,212);
+  doc.rect(W/2, H-10, W/2, 2, 'F');
+
+  doc.setFillColor(7,7,26);
+  doc.rect(0, H-10, W, 10, 'F');
+
+  setFont('normal', 7, [71,85,105]);
+  doc.text(`${g('ourName') || 'Aethrify Innovation'} · ${g('ourEmail') || 'hello@aethrify.xyz'} · ${g('ourPhone') || ''}`, W/2, H-4, { align:'center' });
+
+  if (g('ourGST')) {
+    setFont('normal', 7, [71,85,105]);
+    doc.text(`GSTIN: ${g('ourGST')}`, margin, H-4);
+  }
+  if (g('ourPayment')) {
+    setFont('normal', 7, [71,85,105]);
+    doc.text(`Pay: ${g('ourPayment')}`, W - margin, H-4, { align:'right' });
+  }
+
+  // ---- Save ----
+  const filename = `Aethrify_Quotation_${g('quoteNum').replace(/[^a-z0-9]/gi,'_')}_${g('clientName').replace(/[^a-z0-9]/gi,'_') || 'Client'}.pdf`;
+  doc.save(filename);
+  showToast(`PDF saved as ${filename}`);
+}
+</script>
+</body>
+</html>
