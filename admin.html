@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aethrify Admin — CMS Portal</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root {
+      --bg0:#02020C;--bg1:#06061A;--bg2:#0B0B26;--bg3:#10102F;
+      --glass:rgba(255,255,255,.035);--glass2:rgba(255,255,255,.065);
+      --b0:rgba(255,255,255,.07);--b1:rgba(255,255,255,.13);--b2:rgba(255,255,255,.2);
+      --violet:#7C3AED;--vl:#8B5CF6;--va:rgba(124,58,237,.15);
+      --cyan:#06B6D4;--ca:rgba(6,182,212,.12);
+      --amber:#F59E0B;--green:#10B981;--red:#EF4444;
+      --grad:linear-gradient(135deg,#7C3AED 0%,#06B6D4 100%);
+      --t0:#F1F5F9;--t1:#94A3B8;--t2:#475569;--t3:#1E293B;
+      --f-d:'Bricolage Grotesque',sans-serif;
+      --f-b:'Inter',sans-serif;
+      --f-m:'JetBrains Mono',monospace;
+      --ease:cubic-bezier(.16,1,.3,1);
+      --r:14px;--r-sm:10px;
+      --sidebar:260px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{font-size:16px}
+    body{background:var(--bg0);color:var(--t0);font-family:var(--f-b);overflow-x:hidden}
+    a{color:inherit;text-decoration:none}
+    button{font-family:inherit;cursor:pointer}
+    input,select,textarea{font-family:inherit}
+    ::-webkit-scrollbar{width:4px;height:4px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(124,58,237,.4);border-radius:4px}
+
+    /* ── LOGIN GATE ── */
+    #gate{
+      position:fixed;inset:0;z-index:9999;
+      background:var(--bg0);
+      display:flex;align-items:center;justify-content:center;
+      flex-direction:column;gap:0;
+    }
+    .gate-card{
+      width:420px;max-width:calc(100vw - 40px);
+      background:var(--bg1);border:1px solid var(--b0);border-radius:24px;
+      padding:48px;
+    }
+    .gate-logo{display:flex;align-items:center;gap:11px;font-family:var(--f-d);font-size:22px;font-weight:800;margin-bottom:32px}
+    .gate-logo img{width:40px;height:40px;border-radius:10px}
+    .gate-title{font-family:var(--f-d);font-size:26px;font-weight:700;margin-bottom:6px}
+    .gate-sub{font-size:14px;color:var(--t1);margin-bottom:32px}
+    .gate-lbl{font-size:12px;font-weight:600;color:var(--t1);margin-bottom:8px;letter-spacing:.06em;font-family:var(--f-m)}
+    .gate-inp{
+      width:100%;padding:13px 16px;
+      background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r-sm);
+      color:var(--t0);font-size:15px;outline:none;
+      transition:border-color .2s,box-shadow .2s;margin-bottom:20px;
+    }
+    .gate-inp:focus{border-color:var(--vl);box-shadow:0 0 0 3px rgba(124,58,237,.15)}
+    .gate-btn{
+      width:100%;padding:14px;border:none;border-radius:var(--r-sm);
+      background:var(--grad);color:#fff;font-size:15px;font-weight:600;
+      transition:opacity .2s,transform .2s;
+    }
+    .gate-btn:hover{opacity:.88;transform:translateY(-1px)}
+    .gate-err{color:var(--red);font-size:13px;font-family:var(--f-m);margin-top:12px;display:none}
+    .gate-note{font-family:var(--f-m);font-size:11px;color:var(--t2);text-align:center;margin-top:20px;letter-spacing:.06em}
+
+    /* ── ADMIN SHELL ── */
+    #app{display:none;min-height:100dvh}
+
+    /* SIDEBAR */
+    #sidebar{
+      position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);
+      background:var(--bg1);border-right:1px solid var(--b0);
+      display:flex;flex-direction:column;z-index:100;
+      transition:transform .35s var(--ease);
+    }
+    .sb-head{
+      padding:24px 22px;border-bottom:1px solid var(--b0);
+      display:flex;align-items:center;gap:10px;
+    }
+    .sb-head img{width:34px;height:34px;border-radius:9px}
+    .sb-head-t{font-family:var(--f-d);font-size:18px;font-weight:800}
+    .sb-head-s{font-family:var(--f-m);font-size:10px;color:var(--t2);margin-top:1px;letter-spacing:.1em}
+
+    .sb-nav{flex:1;padding:16px 12px;overflow-y:auto}
+    .sb-sec{font-family:var(--f-m);font-size:10px;color:var(--t2);letter-spacing:.12em;padding:12px 10px 6px;margin-top:6px}
+    .sb-lnk{
+      display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;
+      font-size:14px;font-weight:500;color:var(--t1);cursor:pointer;
+      transition:background .2s,color .2s;
+      border:none;background:none;width:100%;text-align:left;
+    }
+    .sb-lnk:hover{background:var(--va);color:var(--t0)}
+    .sb-lnk.active{background:rgba(124,58,237,.18);color:var(--vl);font-weight:600}
+    .sb-lnk svg{width:16px;height:16px;flex-shrink:0;opacity:.75}
+    .sb-lnk.active svg{opacity:1}
+
+    .sb-foot{
+      padding:16px;border-top:1px solid var(--b0);
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .sb-user{font-size:13px;color:var(--t1)}
+    .sb-out{
+      padding:6px 14px;border-radius:8px;border:1px solid var(--b1);
+      background:none;color:var(--t2);font-size:12px;font-family:var(--f-m);
+      letter-spacing:.06em;transition:color .2s,border-color .2s;
+    }
+    .sb-out:hover{color:var(--red);border-color:rgba(239,68,68,.4)}
+
+    /* MAIN CONTENT */
+    #main{margin-left:var(--sidebar);min-height:100dvh;background:var(--bg0)}
+
+    /* TOP BAR */
+    .topbar{
+      position:sticky;top:0;z-index:50;
+      padding:16px 32px;
+      background:rgba(2,2,12,.92);backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--b0);
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+    }
+    .topbar-title{font-family:var(--f-d);font-size:20px;font-weight:700}
+    .topbar-r{display:flex;align-items:center;gap:12px}
+    .badge{padding:4px 12px;border-radius:100px;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);font-family:var(--f-m);font-size:11px;font-weight:600;color:var(--green);letter-spacing:.07em}
+
+    /* PANELS */
+    .panel{display:none;padding:32px}
+    .panel.active{display:block}
+
+    /* ── DASHBOARD ── */
+    .dash-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+    .kcard{
+      padding:22px;background:var(--bg1);border:1px solid var(--b0);border-radius:var(--r);
+      transition:border-color .25s,transform .3s var(--ease);
+    }
+    .kcard:hover{border-color:rgba(124,58,237,.25);transform:translateY(-3px)}
+    .kc-lbl{font-family:var(--f-m);font-size:11px;color:var(--t2);letter-spacing:.08em;margin-bottom:10px}
+    .kc-val{font-family:var(--f-d);font-size:34px;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+    .kc-sub{font-size:12px;color:var(--t2);margin-top:6px}
+
+    .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .dbox{padding:24px;background:var(--bg1);border:1px solid var(--b0);border-radius:var(--r)}
+    .dbox-t{font-family:var(--f-d);font-weight:700;font-size:15px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+    .dbox-link{font-size:12px;color:var(--vl);font-family:var(--f-m);cursor:pointer;transition:opacity .2s}
+    .dbox-link:hover{opacity:.7}
+
+    .qrow{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      padding:12px 0;border-bottom:1px solid var(--b0);cursor:pointer;
+      transition:background .2s;border-radius:8px;
+    }
+    .qrow:last-child{border-bottom:none}
+    .qrow:hover{background:var(--va);padding-left:8px}
+    .qr-num{font-family:var(--f-m);font-size:12px;color:var(--vl);font-weight:600}
+    .qr-cl{font-size:14px;font-weight:500}
+    .qr-am{font-family:var(--f-m);font-size:13px;font-weight:600}
+    .qr-st{padding:3px 10px;border-radius:100px;font-family:var(--f-m);font-size:10px;font-weight:600;letter-spacing:.06em}
+    .st-draft{background:rgba(71,85,105,.25);color:var(--t2)}
+    .st-sent{background:rgba(6,182,212,.15);color:var(--cyan)}
+    .st-accepted{background:rgba(16,185,129,.15);color:var(--green)}
+    .st-rejected{background:rgba(239,68,68,.12);color:var(--red)}
+
+    /* ── QUOTATION FORM ── */
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+    .form-grid.g3{grid-template-columns:1fr 1fr 1fr}
+    .form-grid.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+    .fg{display:flex;flex-direction:column;gap:6px}
+    .fg.full{grid-column:1/-1}
+    .fl{font-size:12px;font-weight:600;color:var(--t1);letter-spacing:.05em;font-family:var(--f-m)}
+    .fi{
+      padding:10px 14px;background:var(--bg2);
+      border:1px solid var(--b1);border-radius:var(--r-sm);
+      color:var(--t0);font-size:14px;outline:none;width:100%;
+      transition:border-color .2s,box-shadow .2s;
+    }
+    .fi:focus{border-color:var(--vl);box-shadow:0 0 0 3px rgba(124,58,237,.12)}
+    select.fi option{background:var(--bg1)}
+    textarea.fi{resize:vertical;min-height:72px;line-height:1.6}
+
+    /* Items table */
+    .items-head{display:grid;grid-template-columns:2.5fr 80px 1fr 1fr 40px;gap:8px;padding:8px 12px;font-family:var(--f-m);font-size:11px;color:var(--t2);letter-spacing:.07em;background:var(--bg2);border-radius:8px;margin-bottom:8px}
+    .item-row{display:grid;grid-template-columns:2.5fr 80px 1fr 1fr 40px;gap:8px;padding:4px 0;align-items:start}
+    .item-row .fi{padding:8px 10px;font-size:13px}
+    .item-row .fi.ra{text-align:right}
+    .item-amt{display:flex;align-items:center;padding:8px 10px;background:var(--bg2);border:1px solid var(--b0);border-radius:var(--r-sm);font-family:var(--f-m);font-size:13px;color:var(--t1)}
+    .rm-btn{width:32px;height:36px;border:1px solid rgba(239,68,68,.2);border-radius:8px;background:none;color:var(--red);font-size:16px;display:flex;align-items:center;justify-content:center;opacity:.5;transition:opacity .2s,background .2s}
+    .rm-btn:hover{opacity:1;background:rgba(239,68,68,.1)}
+
+    .add-item{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 18px;border:1px dashed var(--b1);border-radius:8px;background:none;color:var(--t1);font-size:13px;font-family:var(--f-b);transition:border-color .2s,color .2s}
+    .add-item:hover{border-color:var(--vl);color:var(--vl)}
+
+    /* Totals */
+    .totals-row{display:flex;justify-content:flex-end;margin-top:24px}
+    .totals-box{width:340px;background:var(--bg1);border:1px solid var(--b0);border-radius:var(--r);overflow:hidden}
+    .tot-line{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font-size:14px;border-bottom:1px solid var(--b0)}
+    .tot-line:last-child{border-bottom:none;background:rgba(124,58,237,.1);font-weight:700;font-size:16px}
+    .tot-line .val{font-family:var(--f-m);font-weight:600}
+    .tot-line.grand .val{font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    /* Terms */
+    .terms-area{padding:20px;background:var(--bg1);border:1px solid var(--b0);border-radius:var(--r);margin-top:20px}
+    .terms-t{font-family:var(--f-m);font-size:11px;color:var(--t2);letter-spacing:.08em;margin-bottom:10px}
+
+    /* Action bar */
+    .action-bar{
+      display:flex;gap:12px;padding:20px 0;margin-top:8px;
+      border-top:1px solid var(--b0);flex-wrap:wrap;
+    }
+    .btn-a{display:inline-flex;align-items:center;gap:7px;padding:11px 22px;border-radius:10px;font-size:14px;font-weight:600;border:none;transition:opacity .2s,transform .2s}
+    .btn-a:hover{opacity:.85;transform:translateY(-1px)}
+    .btn-gen{background:var(--grad);color:#fff}
+    .btn-save{background:var(--bg2);border:1px solid var(--b1);color:var(--t0)}
+    .btn-clr{background:none;border:1px solid var(--b1);color:var(--t2)}
+    .btn-clr:hover{border-color:var(--red);color:var(--red)}
+
+    /* History panel */
+    .hist-grid{display:grid;gap:12px}
+    .hc{
+      padding:18px 22px;background:var(--bg1);border:1px solid var(--b0);border-radius:var(--r);
+      display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;
+      transition:border-color .25s;
+    }
+    .hc:hover{border-color:rgba(124,58,237,.25)}
+    .hc-num{font-family:var(--f-m);font-size:13px;font-weight:600;color:var(--vl)}
+    .hc-cl{font-weight:600;font-size:15px}
+    .hc-dt{font-family:var(--f-m);font-size:11px;color:var(--t2)}
+    .hc-am{font-family:var(--f-m);font-size:15px;font-weight:700}
+    .hc-acts{display:flex;gap:8px}
+    .hc-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-family:var(--f-m);border:1px solid var(--b1);background:none;color:var(--t1);transition:color .2s,border-color .2s}
+    .hc-btn:hover{color:var(--vl);border-color:var(--vl)}
+    .hc-btn.del:hover{color:var(--red);border-color:rgba(239,68,68,.4)}
+    .empty-hist{text-align:center;padding:60px 20px;color:var(--t2);font-family:var(--f-m);font-size:13px}
+
+    /* Section heading */
+    .sec-head{margin-bottom:24px}
+    .sec-t{font-family:var(--f-d);font-size:26px;font-weight:700;margin-bottom:4px}
+    .sec-s{font-size:14px;color:var(--t1)}
+
+    /* Divider */
+    .div{height:1px;background:var(--b0);margin:28px 0}
+    .sub-t{font-family:var(--f-d);font-size:16px;font-weight:700;margin-bottom:14px;color:var(--t0);display:flex;align-items:center;gap:8px}
+    .sub-t::after{content:'';flex:1;height:1px;background:var(--b0)}
+
+    /* Toast */
+    #toast{
+      position:fixed;bottom:28px;right:28px;z-index:9998;
+      background:var(--bg1);border:1px solid rgba(16,185,129,.35);
+      border-radius:12px;padding:14px 22px;
+      font-size:14px;font-weight:500;color:var(--green);
+      font-family:var(--f-m);letter-spacing:.04em;
+      transform:translateY(20px);opacity:0;transition:all .3s var(--ease);pointer-events:none;
+    }
+    #toast.on{transform:translateY(0);opacity:1}
+
+    /* Mobile sidebar */
+    #sb-tog{display:none;position:fixed;top:16px;left:16px;z-index:200;padding:8px;border-radius:10px;border:1px solid var(--b1);background:var(--bg1)}
+    #sb-tog svg{display:block}
+
+    @media(max-width:900px){
+      #sidebar{transform:translateX(-100%)}
+      #sidebar.open{transform:translateX(0)}
+      #main{margin-left:0}
+      .topbar{padding:14px 16px}
+      .panel{padding:20px 16px}
+      .dash-kpis{grid-template-columns:1fr 1fr}
+      .dash-grid{grid-template-columns:1fr}
+      #sb-tog{display:flex}
+      .form-grid.g3,.form-grid.g4{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:540px){
+      .dash-kpis{grid-template-columns:1fr}
+      .form-grid,.form-grid.g3,.form-grid.g4{grid-template-columns:1fr}
+      .items-head{display:none}
+      .item-row{grid-template-columns:1fr;grid-template-rows:auto}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo"><img src="logo.svg" alt="Aethrify">Aethrify</div>
+    <div class="gate-title">Admin Portal</div>
+    <div class="gate-sub">Sign in to manage quotations and business tools.</div>
+    <div class="gate-lbl">PASSWORD</div>
+    <input type="password" class="gate-inp" id="gpw" placeholder="Enter admin password" autocomplete="current-password">
+    <button class="gate-btn" onclick="login()">Sign In →</button>
+    <div class="gate-err" id="gerr">⚠ Incorrect password. Try again.</div>
+    <div class="gate-note">AETHRIFY INNOVATION · INTERNAL PORTAL · CONFIDENTIAL</div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="app">
+  <button id="sb-tog" onclick="document.getElementById('sidebar').classList.toggle('open')">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-head">
+      <img src="logo.svg" alt="A">
+      <div><div class="sb-head-t">Aethrify</div><div class="sb-head-s">ADMIN CMS v1.0</div></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">OVERVIEW</div>
+      <button class="sb-lnk active" onclick="show('dashboard',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <div class="sb-sec">QUOTATIONS</div>
+      <button class="sb-lnk" onclick="show('new-quote',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        New Quotation
+      </button>
+      <button class="sb-lnk" onclick="show('history',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Quote History
+      </button>
+      <div class="sb-sec">WEBSITE</div>
+      <a href="index.html" class="sb-lnk" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        View Website ↗
+      </a>
+    </nav>
+    <div class="sb-foot">
+      <span class="sb-user">Admin</span>
+      <button class="sb-out" onclick="logout()">SIGN OUT</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="panel-title">Dashboard</div>
+      <div class="topbar-r">
+        <span class="badge">● LIVE</span>
+        <span style="font-family:var(--f-m);font-size:12px;color:var(--t2)" id="today-date"></span>
+      </div>
+    </div>
+
+    <!-- DASHBOARD PANEL -->
+    <div class="panel active" id="p-dashboard">
+      <div class="dash-kpis" id="kpis"></div>
+      <div class="dash-grid">
+        <div class="dbox">
+          <div class="dbox-t">Recent Quotations <span class="dbox-link" onclick="show('history',document.querySelector('[onclick*=history]'))">View all →</span></div>
+          <div id="dash-recent"></div>
+        </div>
+        <div class="dbox">
+          <div class="dbox-t">Quick Actions</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <button onclick="show('new-quote',document.querySelector('[onclick*=new-quote]'))" style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--va);border:1px solid rgba(124,58,237,.25);border-radius:12px;color:var(--t0);font-size:14px;font-weight:500;text-align:left;transition:background .2s">
+              <span style="font-size:20px">📄</span> Create New Quotation
+            </button>
+            <a href="index.html" target="_blank" style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg2);border:1px solid var(--b1);border-radius:12px;color:var(--t0);font-size:14px;font-weight:500">
+              <span style="font-size:20px">🌐</span> View Live Website ↗
+            </a>
+            <a href="mailto:hello@aethrify.xyz" style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg2);border:1px solid var(--b1);border-radius:12px;color:var(--t0);font-size:14px;font-weight:500">
+              <span style="font-size:20px">📧</span> hello@aethrify.xyz
+            </a>
+            <a href="tel:+919318307567" style="display:flex;align-items:center;gap:10px;padding:14px;background:var(--bg2);border:1px solid var(--b1);border-radius:12px;color:var(--t0);font-size:14px;font-weight:500">
+              <span style="font-size:20px">📞</span> +91 93183 07567
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEW QUOTATION PANEL -->
+    <div class="panel" id="p-new-quote">
+      <div class="sec-head">
+        <div class="sec-t">New Quotation</div>
+        <div class="sec-s">Generate a professional PDF quotation with Aethrify branding.</div>
+      </div>
+
+      <!-- Quote Meta -->
+      <div class="sub-t">Quotation Details</div>
+      <div class="form-grid g4">
+        <div class="fg"><label class="fl">QUOTE NO.</label><input class="fi" id="q-num" placeholder="AEI-001"></div>
+        <div class="fg"><label class="fl">DATE</label><input class="fi" type="date" id="q-date"></div>
+        <div class="fg"><label class="fl">VALID UNTIL</label><input class="fi" type="date" id="q-valid"></div>
+        <div class="fg"><label class="fl">STATUS</label>
+          <select class="fi" id="q-status">
+            <option value="Draft">Draft</option>
+            <option value="Sent">Sent</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Client -->
+      <div class="sub-t" style="margin-top:24px">Client Information</div>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">CLIENT / COMPANY NAME</label><input class="fi" id="cl-name" placeholder="Acme Corp Pvt Ltd"></div>
+        <div class="fg"><label class="fl">CONTACT PERSON</label><input class="fi" id="cl-contact" placeholder="Mr. Rohan Mehta"></div>
+      </div>
+      <div class="form-grid g3">
+        <div class="fg"><label class="fl">EMAIL</label><input class="fi" type="email" id="cl-email" placeholder="contact@acmecorp.in"></div>
+        <div class="fg"><label class="fl">PHONE</label><input class="fi" type="tel" id="cl-phone" placeholder="+91 98765 43210"></div>
+        <div class="fg"><label class="fl">GSTIN (optional)</label><input class="fi" id="cl-gst" placeholder="22AAAAA0000A1Z5"></div>
+      </div>
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">ADDRESS</label><textarea class="fi" id="cl-addr" rows="2" placeholder="123, Business Park, Sector 21, Gurugram, Haryana - 122001"></textarea></div>
+      </div>
+
+      <!-- Project -->
+      <div class="sub-t" style="margin-top:24px">Project Details</div>
+      <div class="form-grid">
+        <div class="fg"><label class="fl">PROJECT TITLE</label><input class="fi" id="p-title" placeholder="Custom E-Commerce Platform Development"></div>
+        <div class="fg"><label class="fl">CURRENCY</label>
+          <select class="fi" id="q-currency" onchange="renderTotals()">
+            <option value="₹">₹ INR</option>
+            <option value="$">$ USD</option>
+            <option value="€">€ EUR</option>
+            <option value="£">£ GBP</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="fg full"><label class="fl">PROJECT DESCRIPTION</label><textarea class="fi" id="p-desc" rows="3" placeholder="Brief description of the project scope and deliverables..."></textarea></div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="sub-t" style="margin-top:24px">Line Items</div>
+      <div class="items-head">
+        <span>DESCRIPTION</span><span>QTY</span><span>UNIT PRICE</span><span>AMOUNT</span><span></span>
+      </div>
+      <div id="items-body"></div>
+      <button class="add-item" onclick="addItem()">+ Add Line Item</button>
+
+      <!-- Totals -->
+      <div class="totals-row">
+        <div class="totals-box">
+          <div class="tot-line"><span>Subtotal</span><span class="val" id="t-sub">—</span></div>
+          <div class="tot-line">
+            <span>GST / Tax <input type="number" id="q-gst" value="18" min="0" max="100" step=".5" style="width:46px;background:none;border:none;border-bottom:1px solid var(--b1);color:var(--t0);font-family:var(--f-m);font-size:13px;text-align:center;outline:none;margin:0 2px" oninput="renderTotals()">%</span>
+            <span class="val" id="t-tax">—</span>
+          </div>
+          <div class="tot-line">
+            <span>Discount <input type="number" id="q-disc" value="0" min="0" step="1" style="width:56px;background:none;border:none;border-bottom:1px solid var(--b1);color:var(--t0);font-family:var(--f-m);font-size:13px;text-align:center;outline:none;margin:0 2px" oninput="renderTotals()"></span>
+            <span class="val" id="t-disc">—</span>
+          </div>
+          <div class="tot-line grand"><span>GRAND TOTAL</span><span class="val" id="t-grand">—</span></div>
+        </div>
+      </div>
+
+      <!-- Terms -->
+      <div class="terms-area">
+        <div class="terms-t">TERMS & CONDITIONS</div>
+        <textarea class="fi" id="q-terms" rows="5" style="border:none;background:none;padding:0;resize:vertical">1. This quotation is valid for the period mentioned above.
+2. 50% advance payment required to commence work.
+3. Remaining 50% due upon project completion and delivery.
+4. Prices are exclusive of GST unless stated otherwise.
+5. Any additional scope of work will be quoted separately.
+6. Aethrify Innovation reserves all intellectual property rights until full payment is received.</textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-bar">
+        <button class="btn-a btn-gen" onclick="generatePDF()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Generate PDF
+        </button>
+        <button class="btn-a btn-save" onclick="saveQuote()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Draft
+        </button>
+        <button class="btn-a btn-clr" onclick="clearForm()">Clear Form</button>
+      </div>
+    </div>
+
+    <!-- HISTORY PANEL -->
+    <div class="panel" id="p-history">
+      <div class="sec-head">
+        <div class="sec-t">Quote History</div>
+        <div class="sec-s">All saved quotations stored locally.</div>
+      </div>
+      <div id="hist-list"></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<script>
+/* ── AUTH ── */
+const PASS='aethrify2025';
+function login(){
+  const v=document.getElementById('gpw').value;
+  if(v===PASS){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    init();
+  } else {
+    document.getElementById('gerr').style.display='block';
+    document.getElementById('gpw').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('gpw').style.borderColor='',2000);
+  }
+}
+document.getElementById('gpw').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+function logout(){if(confirm('Sign out of Admin Portal?')){location.reload()}}
+
+/* ── NAV ── */
+const titles={dashboard:'Dashboard','new-quote':'New Quotation',history:'Quote History'};
+function show(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-lnk').forEach(b=>b.classList.remove('active'));
+  document.getElementById('p-'+id).classList.add('active');
+  document.getElementById('panel-title').textContent=titles[id]||id;
+  if(btn){btn.classList.add('active')}
+  if(id==='history') renderHistory();
+  if(id==='dashboard') renderDash();
+  // close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+/* ── INIT ── */
+function init(){
+  document.getElementById('today-date').textContent=new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  // set default dates
+  const d=new Date();
+  document.getElementById('q-date').value=d.toISOString().split('T')[0];
+  const v=new Date(d);v.setDate(v.getDate()+30);
+  document.getElementById('q-valid').value=v.toISOString().split('T')[0];
+  // auto quote number
+  const quotes=getQuotes();
+  document.getElementById('q-num').value='AEI-'+String(quotes.length+1).padStart(3,'0');
+  // default items
+  addItem();addItem();
+  renderTotals();
+  renderDash();
+}
+
+/* ── LINE ITEMS ── */
+let itemId=0;
+function addItem(){
+  const id=itemId++;
+  const row=document.createElement('div');row.className='item-row';row.id='ir-'+id;
+  row.innerHTML=`
+    <input class="fi" placeholder="Service description" oninput="renderTotals()">
+    <input class="fi ra" type="number" value="1" min="1" oninput="renderTotals()">
+    <input class="fi ra" type="number" placeholder="0.00" min="0" step="0.01" oninput="renderTotals()">
+    <div class="item-amt" id="ia-${id}">—</div>
+    <button class="rm-btn" onclick="rmItem(${id})" title="Remove">✕</button>
+  `;
+  document.getElementById('items-body').appendChild(row);
+  renderTotals();
+}
+function rmItem(id){
+  const r=document.getElementById('ir-'+id);
+  if(r){r.style.opacity='0';r.style.transition='opacity .2s';setTimeout(()=>{r.remove();renderTotals()},200)}
+}
+
+/* ── TOTALS ── */
+function getItems(){
+  return Array.from(document.querySelectorAll('#items-body .item-row')).map(r=>{
+    const ins=r.querySelectorAll('input');
+    const desc=ins[0].value||'';
+    const qty=parseFloat(ins[1].value)||0;
+    const up=parseFloat(ins[2].value)||0;
+    const amt=qty*up;
+    return{desc,qty,up,amt};
+  });
+}
+function fmt(n){const c=document.getElementById('q-currency')?.value||'₹';return c+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+function renderTotals(){
+  const items=getItems();
+  // update row amounts
+  document.querySelectorAll('#items-body .item-row').forEach((r,i)=>{
+    const ia=r.querySelector('[id^="ia-"]');
+    if(ia)ia.textContent=items[i]?fmt(items[i].amt):'—';
+  });
+  const sub=items.reduce((s,i)=>s+i.amt,0);
+  const gst=parseFloat(document.getElementById('q-gst').value)||0;
+  const disc=parseFloat(document.getElementById('q-disc').value)||0;
+  const tax=sub*gst/100;
+  const grand=sub+tax-disc;
+  document.getElementById('t-sub').textContent=fmt(sub);
+  document.getElementById('t-tax').textContent=fmt(tax);
+  document.getElementById('t-disc').textContent='–'+fmt(disc);
+  document.getElementById('t-grand').textContent=fmt(grand);
+}
+
+/* ── SAVE / LOAD ── */
+function getQuotes(){try{return JSON.parse(localStorage.getItem('aei_quotes')||'[]')}catch{return[]}}
+function saveQuotes(q){localStorage.setItem('aei_quotes',JSON.stringify(q))}
+function getFormData(){
+  return{
+    id:document.getElementById('q-num').value,
+    date:document.getElementById('q-date').value,
+    valid:document.getElementById('q-valid').value,
+    status:document.getElementById('q-status').value,
+    currency:document.getElementById('q-currency').value,
+    client:{name:document.getElementById('cl-name').value,contact:document.getElementById('cl-contact').value,email:document.getElementById('cl-email').value,phone:document.getElementById('cl-phone').value,gst:document.getElementById('cl-gst').value,addr:document.getElementById('cl-addr').value},
+    project:{title:document.getElementById('p-title').value,desc:document.getElementById('p-desc').value},
+    items:getItems(),
+    gstPct:parseFloat(document.getElementById('q-gst').value)||0,
+    discount:parseFloat(document.getElementById('q-disc').value)||0,
+    terms:document.getElementById('q-terms').value,
+    savedAt:new Date().toISOString()
+  };
+}
+function saveQuote(){
+  const d=getFormData();
+  const qs=getQuotes();
+  const idx=qs.findIndex(q=>q.id===d.id);
+  if(idx>=0)qs[idx]=d;else qs.unshift(d);
+  saveQuotes(qs);
+  toast('✓ Quotation saved successfully');
+}
+function clearForm(){
+  if(!confirm('Clear all form data?')) return;
+  document.getElementById('items-body').innerHTML='';
+  ['q-num','q-date','q-valid','cl-name','cl-contact','cl-email','cl-phone','cl-gst','cl-addr','p-title','p-desc','q-gst','q-disc'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value=id==='q-gst'?'18':'0'||'';
+  });
+  document.getElementById('q-gst').value=18;
+  document.getElementById('q-disc').value=0;
+  itemId=0;addItem();addItem();renderTotals();
+  toast('Form cleared');
+}
+function loadQuote(q){
+  document.getElementById('q-num').value=q.id;
+  document.getElementById('q-date').value=q.date;
+  document.getElementById('q-valid').value=q.valid;
+  document.getElementById('q-status').value=q.status;
+  document.getElementById('q-currency').value=q.currency||'₹';
+  document.getElementById('cl-name').value=q.client.name;
+  document.getElementById('cl-contact').value=q.client.contact;
+  document.getElementById('cl-email').value=q.client.email;
+  document.getElementById('cl-phone').value=q.client.phone;
+  document.getElementById('cl-gst').value=q.client.gst||'';
+  document.getElementById('cl-addr').value=q.client.addr||'';
+  document.getElementById('p-title').value=q.project.title;
+  document.getElementById('p-desc').value=q.project.desc;
+  document.getElementById('q-gst').value=q.gstPct||18;
+  document.getElementById('q-disc').value=q.discount||0;
+  document.getElementById('q-terms').value=q.terms||'';
+  document.getElementById('items-body').innerHTML='';
+  itemId=0;
+  (q.items||[]).forEach(it=>{
+    const id=itemId++;
+    const row=document.createElement('div');row.className='item-row';row.id='ir-'+id;
+    row.innerHTML=`
+      <input class="fi" value="${it.desc}" oninput="renderTotals()">
+      <input class="fi ra" type="number" value="${it.qty}" min="1" oninput="renderTotals()">
+      <input class="fi ra" type="number" value="${it.up.toFixed(2)}" min="0" step="0.01" oninput="renderTotals()">
+      <div class="item-amt" id="ia-${id}">—</div>
+      <button class="rm-btn" onclick="rmItem(${id})">✕</button>
+    `;
+    document.getElementById('items-body').appendChild(row);
+  });
+  renderTotals();
+  show('new-quote',document.querySelector('[onclick*=new-quote]'));
+  toast('✓ Quotation loaded');
+}
+
+/* ── HISTORY ── */
+function renderHistory(){
+  const qs=getQuotes();
+  const el=document.getElementById('hist-list');
+  if(!qs.length){el.innerHTML='<div class="empty-hist">No saved quotations yet.<br>Create one in New Quotation →</div>';return}
+  el.innerHTML=qs.map((q,i)=>{
+    const sub=q.items.reduce((s,it)=>s+it.amt,0);
+    const tax=sub*q.gstPct/100;
+    const grand=sub+tax-(q.discount||0);
+    const c=q.currency||'₹';
+    const stClass={Draft:'st-draft',Sent:'st-sent',Accepted:'st-accepted',Rejected:'st-rejected'}[q.status]||'st-draft';
+    return`<div class="hc">
+      <div class="hc-num">${q.id}</div>
+      <div><div class="hc-cl">${q.client.name||'—'}</div><div class="hc-dt">${q.project.title||''} · ${q.date}</div></div>
+      <div><div class="hc-am">${c}${grand.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',')}</div><span class="qr-st ${stClass}">${q.status}</span></div>
+      <div class="hc-acts">
+        <button class="hc-btn" onclick='loadQuote(${JSON.stringify(q).replace(/'/g,"\\'")})'  >Edit</button>
+        <button class="hc-btn" onclick='rePDF(${JSON.stringify(q).replace(/'/g,"\\'")})'  >PDF</button>
+        <button class="hc-btn del" onclick="delQuote('${q.id}')">Del</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function delQuote(id){
+  if(!confirm('Delete quotation '+id+'?')) return;
+  saveQuotes(getQuotes().filter(q=>q.id!==id));
+  renderHistory();
+  toast('Quotation deleted');
+}
+
+/* ── DASHBOARD ── */
+function renderDash(){
+  const qs=getQuotes();
+  const total=qs.reduce((s,q)=>{const sub=q.items.reduce((a,i)=>a+i.amt,0);return s+sub+sub*q.gstPct/100-(q.discount||0)},0);
+  const sent=qs.filter(q=>q.status==='Sent').length;
+  const acc=qs.filter(q=>q.status==='Accepted').length;
+  document.getElementById('kpis').innerHTML=`
+    <div class="kcard"><div class="kc-lbl">TOTAL QUOTES</div><div class="kc-val">${qs.length}</div><div class="kc-sub">All time</div></div>
+    <div class="kcard"><div class="kc-lbl">PIPELINE VALUE</div><div class="kc-val">₹${(total/1000).toFixed(1)}K</div><div class="kc-sub">Saved quotes</div></div>
+    <div class="kcard"><div class="kc-lbl">SENT</div><div class="kc-val">${sent}</div><div class="kc-sub">Awaiting response</div></div>
+    <div class="kcard"><div class="kc-lbl">ACCEPTED</div><div class="kc-val">${acc}</div><div class="kc-sub">Converted</div></div>
+  `;
+  const recent=qs.slice(0,5);
+  document.getElementById('dash-recent').innerHTML=recent.length?recent.map(q=>{
+    const sub=q.items.reduce((s,it)=>s+it.amt,0);
+    const grand=sub+sub*q.gstPct/100-(q.discount||0);
+    const c=q.currency||'₹';
+    const stClass={Draft:'st-draft',Sent:'st-sent',Accepted:'st-accepted',Rejected:'st-rejected'}[q.status]||'st-draft';
+    return`<div class="qrow" onclick='loadQuote(${JSON.stringify(q).replace(/'/g,"\\'")})'>
+      <span class="qr-num">${q.id}</span>
+      <span class="qr-cl">${q.client.name||'—'}</span>
+      <span class="qr-am">${c}${grand.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,',')}</span>
+      <span class="qr-st ${stClass}">${q.status}</span>
+    </div>`;
+  }).join(''):'<div style="padding:24px 0;color:var(--t2);font-family:var(--f-m);font-size:13px;text-align:center">No quotations yet</div>';
+}
+
+/* ── PDF ── */
+function buildPDFData(){return getFormData()}
+function rePDF(q){
+  // temporarily load q into form then generate
+  const backup=getFormData();
+  loadQuoteInternal(q);
+  generatePDF();
+  setTimeout(()=>loadQuoteInternal(backup),100);
+}
+function loadQuoteInternal(q){
+  document.getElementById('q-num').value=q.id||'';
+  document.getElementById('q-date').value=q.date||'';
+  document.getElementById('q-valid').value=q.valid||'';
+  document.getElementById('q-status').value=q.status||'Draft';
+  document.getElementById('q-currency').value=q.currency||'₹';
+  document.getElementById('cl-name').value=q.client?.name||'';
+  document.getElementById('cl-contact').value=q.client?.contact||'';
+  document.getElementById('cl-email').value=q.client?.email||'';
+  document.getElementById('cl-phone').value=q.client?.phone||'';
+  document.getElementById('cl-gst').value=q.client?.gst||'';
+  document.getElementById('cl-addr').value=q.client?.addr||'';
+  document.getElementById('p-title').value=q.project?.title||'';
+  document.getElementById('p-desc').value=q.project?.desc||'';
+  document.getElementById('q-gst').value=q.gstPct||18;
+  document.getElementById('q-disc').value=q.discount||0;
+  document.getElementById('q-terms').value=q.terms||'';
+  document.getElementById('items-body').innerHTML='';
+  itemId=0;
+  (q.items||[]).forEach(it=>{
+    const id=itemId++;
+    const row=document.createElement('div');row.className='item-row';row.id='ir-'+id;
+    row.innerHTML=`<input class="fi" value="${it.desc}" oninput="renderTotals()"><input class="fi ra" type="number" value="${it.qty}" oninput="renderTotals()"><input class="fi ra" type="number" value="${it.up?.toFixed(2)||'0.00'}" oninput="renderTotals()"><div class="item-amt" id="ia-${id}">—</div><button class="rm-btn" onclick="rmItem(${id})">✕</button>`;
+    document.getElementById('items-body').appendChild(row);
+  });
+  renderTotals();
+}
+
+async function generatePDF(){
+  const {jsPDF}=window.jspdf;
+  if(!jsPDF){alert('PDF library not loaded. Check your connection.');return}
+  const d=buildPDFData();
+  const currency=d.currency||'₹';
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297;
+
+  // helpers
+  const hex=(h)=>{h=h.replace('#','');return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]};
+  const setRGB=(col)=>doc.setTextColor(...hex(col));
+  const fmtN=(n)=>currency+Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+
+  // BG
+  doc.setFillColor(...hex('#02020C'));doc.rect(0,0,W,H,'F');
+
+  // Top accent bar
+  const grad=[{x:0,c:'#7C3AED'},{x:W,c:'#06B6D4'}];
+  doc.setFillColor(...hex('#7C3AED'));doc.rect(0,0,W/2,4,'F');
+  doc.setFillColor(...hex('#06B6D4'));doc.rect(W/2,0,W/2,4,'F');
+
+  // Header BG
+  doc.setFillColor(...hex('#06061A'));doc.roundedRect(0,4,W,52,0,0,'F');
+
+  // Company name
+  doc.setFont('helvetica','bold');doc.setFontSize(22);
+  setRGB('#8B5CF6');doc.text('AETHRIFY',14,24);
+  doc.setFont('helvetica','normal');doc.setFontSize(9);
+  setRGB('#475569');doc.text('INNOVATION',14,30);
+
+  // Tagline
+  doc.setFontSize(8);setRGB('#475569');
+  doc.text('Web Development · Digital Marketing · Mobile Apps · White-Label SaaS',14,38);
+  doc.text('hello@aethrify.xyz  |  +91 93183 07567  |  aethrify.xyz',14,44);
+
+  // QUOTATION title (right)
+  doc.setFont('helvetica','bold');doc.setFontSize(28);setRGB('#F1F5F9');
+  doc.text('QUOTATION',W-14,28,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setFontSize(9);setRGB('#8B5CF6');
+  doc.text(d.id||'AEI-001',W-14,36,{align:'right'});
+  doc.setFontSize(8);setRGB('#475569');
+  const stMap={Draft:'[ DRAFT ]',Sent:'[ SENT ]',Accepted:'[ ACCEPTED ]',Rejected:'[ REJECTED ]'};
+  doc.text(stMap[d.status]||'[ DRAFT ]',W-14,42,{align:'right'});
+
+  let y=66;
+
+  // Meta boxes
+  const boxes=[
+    ['DATE',d.date||'—'],['VALID UNTIL',d.valid||'—'],['GST RATE',d.gstPct+'%']
+  ];
+  const bw=(W-28-16)/3,bx=14;
+  boxes.forEach((b,i)=>{
+    const x=bx+i*(bw+8);
+    doc.setFillColor(...hex('#0B0B26'));doc.roundedRect(x,y,bw,16,2,2,'F');
+    doc.setFont('helvetica','normal');doc.setFontSize(7);setRGB('#475569');
+    doc.text(b[0],x+6,y+6);
+    doc.setFont('helvetica','bold');doc.setFontSize(9);setRGB('#F1F5F9');
+    doc.text(b[1],x+6,y+13);
+  });
+
+  y+=26;
+
+  // Client + Project side by side
+  const half=(W-28-8)/2;
+  doc.setFillColor(...hex('#06061A'));doc.roundedRect(14,y,half,40,2,2,'F');
+  doc.setFillColor(...hex('#06061A'));doc.roundedRect(14+half+8,y,half,40,2,2,'F');
+
+  // Client
+  doc.setFont('helvetica','bold');doc.setFontSize(7);setRGB('#8B5CF6');
+  doc.text('BILLED TO',20,y+8);
+  doc.setFont('helvetica','bold');doc.setFontSize(10);setRGB('#F1F5F9');
+  doc.text(d.client.name||'Client Name',20,y+16);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);setRGB('#94A3B8');
+  if(d.client.contact)doc.text(d.client.contact,20,y+22);
+  if(d.client.email)doc.text(d.client.email,20,y+27);
+  if(d.client.phone)doc.text(d.client.phone,20,y+32);
+  if(d.client.addr){const a=doc.splitTextToSize(d.client.addr,half-12);doc.text(a,20,y+37)}
+
+  // Project
+  const px=14+half+8+6;
+  doc.setFont('helvetica','bold');doc.setFontSize(7);setRGB('#06B6D4');
+  doc.text('PROJECT',px,y+8);
+  doc.setFont('helvetica','bold');doc.setFontSize(10);setRGB('#F1F5F9');
+  const ptLines=doc.splitTextToSize(d.project.title||'Project Title',half-12);
+  doc.text(ptLines,px,y+16);
+  if(d.project.desc){
+    doc.setFont('helvetica','normal');doc.setFontSize(8);setRGB('#94A3B8');
+    const dl=doc.splitTextToSize(d.project.desc,half-12);
+    doc.text(dl.slice(0,3),px,y+26);
+  }
+  if(d.client.gst){doc.setFontSize(7);setRGB('#475569');doc.text('GSTIN: '+d.client.gst,px,y+38)}
+
+  y+=50;
+
+  // Line items table
+  const validItems=d.items.filter(it=>it.desc||it.up);
+  doc.autoTable({
+    startY:y,
+    margin:{left:14,right:14},
+    head:[['#','DESCRIPTION','QTY','UNIT PRICE','AMOUNT']],
+    body:validItems.map((it,i)=>[
+      String(i+1),it.desc,String(it.qty),fmtN(it.up),fmtN(it.amt)
+    ]),
+    theme:'plain',
+    headStyles:{fillColor:hex('#0B0B26'),textColor:hex('#8B5CF6'),fontStyle:'bold',fontSize:8,cellPadding:{top:5,bottom:5,left:5,right:5}},
+    bodyStyles:{fillColor:hex('#06061A'),textColor:hex('#94A3B8'),fontSize:8.5,cellPadding:{top:5,bottom:5,left:5,right:5}},
+    alternateRowStyles:{fillColor:hex('#070719')},
+    columnStyles:{0:{cellWidth:12,halign:'center'},2:{cellWidth:18,halign:'right'},3:{cellWidth:32,halign:'right'},4:{cellWidth:32,halign:'right'}},
+    didDrawPage:(data)=>{y=data.cursor.y}
+  });
+
+  y=doc.lastAutoTable.finalY+8;
+
+  // Totals box
+  const sub=validItems.reduce((s,i)=>s+i.amt,0);
+  const tax=sub*d.gstPct/100;
+  const disc=d.discount||0;
+  const grand=sub+tax-disc;
+  const tw=90;const tx=W-14-tw;
+  const totRows=[['Subtotal',fmtN(sub)],['GST ('+d.gstPct+'%)',fmtN(tax)],['Discount','–'+fmtN(disc)]];
+  doc.setFillColor(...hex('#06061A'));doc.roundedRect(tx,y,tw,38,2,2,'F');
+  totRows.forEach((r,i)=>{
+    doc.setFont('helvetica','normal');doc.setFontSize(8);setRGB('#94A3B8');
+    doc.text(r[0],tx+8,y+10+i*9);
+    doc.setFont('helvetica','bold');doc.setFontSize(8);setRGB('#F1F5F9');
+    doc.text(r[1],tx+tw-8,y+10+i*9,{align:'right'});
+  });
+  // Grand total
+  y+=40;
+  doc.setFillColor(...hex('#7C3AED'));doc.roundedRect(tx,y,tw,14,2,2,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(8);setRGB('#FFFFFF');
+  doc.text('GRAND TOTAL',tx+8,y+9);
+  doc.setFontSize(10);doc.text(fmtN(grand),tx+tw-8,y+9,{align:'right'});
+  y+=22;
+
+  // Terms
+  if(d.terms){
+    doc.setFillColor(...hex('#06061A'));doc.roundedRect(14,y,W-28,42,2,2,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(7);setRGB('#475569');
+    doc.text('TERMS & CONDITIONS',20,y+8);
+    doc.setFont('helvetica','normal');doc.setFontSize(7.5);setRGB('#64748B');
+    const lines=doc.splitTextToSize(d.terms,W-42);
+    doc.text(lines.slice(0,6),20,y+15);
+    y+=50;
+  }
+
+  // Footer
+  doc.setFillColor(...hex('#06061A'));doc.rect(0,H-18,W,18,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(7);setRGB('#475569');
+  doc.text('AETHRIFY INNOVATION · hello@aethrify.xyz · +91 93183 07567 · aethrify.xyz',W/2,H-8,{align:'center'});
+  doc.setFillColor(...hex('#7C3AED'));doc.rect(0,H-2,W/2,2,'F');
+  doc.setFillColor(...hex('#06B6D4'));doc.rect(W/2,H-2,W/2,2,'F');
+
+  const fn='Aethrify_Quotation_'+(d.id||'Q')+'_'+(d.client.name||'Client').replace(/\s+/g,'_')+'.pdf';
+  doc.save(fn);
+  toast('✓ PDF saved: '+fn);
+}
+
+/* ── TOAST ── */
+function toast(msg,dur=3500){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'),dur);
+}
+</script>
+</body>
+</html>
