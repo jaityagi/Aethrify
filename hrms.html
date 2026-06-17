@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aethrify HR — Intelligent Human Resource Management System</title>
+  <meta name="description" content="Aethrify HR is a full-stack HRMS platform — payroll, attendance, leave, recruitment, appraisals, and employee self-service — built for modern Indian enterprises.">
+  <meta name="keywords" content="HRMS, HR software, payroll software, attendance management, leave management, HR automation, employee management, Aethrify HR">
+  <meta property="og:title" content="Aethrify HR — Intelligent HRMS for Modern Enterprises">
+  <meta property="og:description" content="One platform to manage your entire workforce — payroll, attendance, appraisals, recruitment and more.">
+  <meta property="og:url" content="https://aethrify.xyz/hrms">
+  <link rel="canonical" href="https://aethrify.xyz/hrms">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+  <style>
+    /* ══ TOKENS ══════════════════════════════════════════════ */
+    :root {
+      --bg:   #030309;
+      --bg1:  #070712;
+      --bg2:  #0C0C1E;
+      --bg3:  #111128;
+      --gl:   rgba(255,255,255,.026);
+      --gl2:  rgba(255,255,255,.052);
+      --b0:   rgba(255,255,255,.06);
+      --b1:   rgba(255,255,255,.11);
+      --b2:   rgba(255,255,255,.18);
+      /* HR brand — warmer violet + emerald accent */
+      --v:    #7C3AED;
+      --vl:   #9B6FF5;
+      --va:   rgba(124,58,237,.13);
+      --gv:   0 0 40px rgba(124,58,237,.4);
+      --em:   #059669;   /* emerald — HR green */
+      --ea:   rgba(5,150,105,.12);
+      --cy:   #06B6D4;
+      --am:   #F59E0B;
+      --re:   #EF4444;
+      --grad:     linear-gradient(135deg,#7C3AED 0%,#059669 100%);
+      --grad-v:   linear-gradient(135deg,#7C3AED 0%,#06B6D4 100%);
+      --grad-cta: linear-gradient(135deg,#059669 0%,#06B6D4 100%);
+      --gn:   0 0 10px rgba(155,111,245,.65);
+      --grid: rgba(124,58,237,.045);
+      --t0:   #EFF4FF;
+      --t1:   #8B96B0;
+      --t2:   #454E66;
+      --fd: 'Space Grotesk', sans-serif;
+      --fb: 'DM Sans', sans-serif;
+      --fm: 'JetBrains Mono', monospace;
+      --spring: cubic-bezier(.34,1.56,.64,1);
+      --smooth: cubic-bezier(.16,1,.3,1);
+      --ease:   cubic-bezier(.4,0,.2,1);
+    }
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+    /* ══ RESET ═══════════════════════════════════════════════ */
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth;font-size:16px;-webkit-text-size-adjust:100%}
+    body{background:var(--bg);color:var(--t0);font-family:var(--fb);overflow-x:hidden;cursor:none}
+    a{color:inherit;text-decoration:none}
+    ul{list-style:none}
+    button{font-family:inherit;cursor:pointer}
+    img{display:block;max-width:100%}
+    :focus-visible{outline:2px solid var(--vl);outline-offset:3px;border-radius:4px}
+    ::selection{background:rgba(124,58,237,.35);color:var(--t0)}
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-track{background:var(--bg)}
+    ::-webkit-scrollbar-thumb{background:var(--grad);border-radius:2px}
+
+    /* ══ CURSOR ══════════════════════════════════════════════ */
+    .cdot,.cring{position:fixed;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);will-change:transform}
+    .cdot{width:6px;height:6px;background:var(--vl);box-shadow:var(--gn);transition:background .2s,transform .1s}
+    .cring{width:30px;height:30px;border:1px solid rgba(155,111,245,.4);z-index:9998;transition:width .3s var(--smooth),height .3s var(--smooth),border-color .3s}
+    .cdot.hov{background:var(--em);transform:translate(-50%,-50%) scale(1.8)}
+    .cring.hov{width:50px;height:50px;border-color:var(--em)}
+
+    /* ══ PROGRESS ════════════════════════════════════════════ */
+    #pb{position:fixed;top:0;left:0;height:1px;background:var(--grad);z-index:3000;width:0;box-shadow:var(--gn)}
+
+    /* ══ CANVAS + GRID ═══════════════════════════════════════ */
+    #pc{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.45}
+    #go{
+      position:fixed;inset:0;z-index:1;pointer-events:none;
+      background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+      background-size:64px 64px;
+      -webkit-mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 0%,transparent 100%);
+      mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 0%,transparent 100%);
+    }
+    body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.016;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+    /* ══ LAYOUT ══════════════════════════════════════════════ */
+    .wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+    .section{padding:120px 0;position:relative;z-index:2}
+
+    /* ══ TYPE ════════════════════════════════════════════════ */
+    .tag{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--vl);margin-bottom:16px}
+    .tag::before{content:'>_';color:var(--em);font-weight:700;letter-spacing:0}
+    .h2{font-family:var(--fd);font-size:clamp(32px,4.5vw,60px);font-weight:700;line-height:1.05;letter-spacing:-.025em;margin-bottom:16px}
+    .lead{font-size:16.5px;color:var(--t1);line-height:1.82;max-width:540px}
+    .gt{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .gt-v{background:var(--grad-v);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    /* ══ REVEAL ══════════════════════════════════════════════ */
+    .rv{opacity:0;transform:translateY(28px);transition:opacity .72s var(--smooth),transform .72s var(--smooth)}
+    .rv.on{opacity:1;transform:translateY(0)}
+    .d1{transition-delay:.07s}.d2{transition-delay:.14s}.d3{transition-delay:.21s}
+    .d4{transition-delay:.28s}.d5{transition-delay:.35s}.d6{transition-delay:.42s}
+
+    /* ══ BUTTONS ═════════════════════════════════════════════ */
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none;font-family:var(--fb);transition:transform .35s var(--spring),box-shadow .25s,opacity .2s;position:relative;overflow:hidden}
+    .btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);opacity:0;transition:opacity .2s}
+    .btn:hover{transform:translateY(-3px)}
+    .btn:hover::before{opacity:1}
+    .btn:active{transform:translateY(-1px) scale(.98)}
+    .btn-p{background:var(--grad);color:#fff;box-shadow:0 4px 24px rgba(5,150,105,.25)}
+    .btn-p:hover{box-shadow:0 8px 48px rgba(5,150,105,.4)}
+    .btn-g{background:var(--gl);border:1px solid var(--b1);color:var(--t0);backdrop-filter:blur(10px)}
+    .btn-g:hover{border-color:var(--vl);background:var(--va)}
+    .btn-v{background:var(--grad-v);color:#fff;box-shadow:0 4px 24px rgba(124,58,237,.3)}
+    .btn-v:hover{box-shadow:var(--gv)}
+    .btn-sm{padding:9px 20px;font-size:13px}
+    .mag{display:inline-block;transition:transform .35s var(--spring)}
+
+    /* ══ NAV ══════════════════════════════════════════════════ */
+    #nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:20px 0;transition:padding .35s,background .35s,border-color .35s;border-bottom:1px solid transparent}
+    #nav.stuck{padding:11px 0;background:rgba(3,3,9,.88);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border-color:var(--b0)}
+    .nav-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .logo{display:flex;align-items:center;gap:9px;font-family:var(--fd);font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--t0)}
+    .logo img{width:34px;height:34px;border-radius:8px;object-fit:cover}
+    .logo-badge{font-family:var(--fm);font-size:9px;padding:2px 8px;border-radius:100px;background:rgba(5,150,105,.15);border:1px solid rgba(5,150,105,.3);color:var(--em);letter-spacing:.1em;margin-left:2px;white-space:nowrap}
+    .nav-links{display:flex;align-items:center;gap:28px}
+    .nav-links a{font-family:var(--fb);font-size:13.5px;font-weight:500;color:var(--t1);position:relative;transition:color .2s;padding:4px 0}
+    .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:100%;height:1px;background:var(--grad);transition:right .3s var(--smooth)}
+    .nav-links a:hover{color:var(--t0)}
+    .nav-links a:hover::after{right:0}
+    .burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;touch-action:manipulation}
+    .burger span{display:block;width:22px;height:1.5px;background:var(--t0);border-radius:2px;transition:transform .35s,opacity .35s}
+    .burger.on span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+    .burger.on span:nth-child(2){opacity:0}
+    .burger.on span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+    #mob{position:fixed;inset:0;z-index:999;background:rgba(3,3,9,.97);backdrop-filter:blur(28px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;transform:translateX(100%);transition:transform .45s var(--smooth)}
+    #mob.on{transform:translateX(0)}
+    #mob a{font-family:var(--fd);font-size:26px;font-weight:700;color:var(--t0);transition:color .2s,transform .2s}
+    #mob a:hover{color:var(--vl);transform:translateX(5px)}
+
+    /* ══ HERO ═════════════════════════════════════════════════ */
+    .hero{min-height:100dvh;display:flex;align-items:center;padding:140px 0 100px;position:relative;overflow:hidden;z-index:2}
+    .hero-mesh{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 55% at 12% 60%,rgba(5,150,105,.14),transparent 58%),radial-gradient(ellipse 50% 50% at 90% 20%,rgba(124,58,237,.12),transparent 52%),radial-gradient(ellipse 35% 35% at 55% 90%,rgba(6,182,212,.06),transparent 50%)}
+    .hero-scan{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--em) 40%,var(--vl) 60%,transparent 100%);opacity:0;animation:scanLine 2.4s .4s var(--smooth) forwards;pointer-events:none}
+    @keyframes scanLine{0%{top:0;opacity:0}10%{opacity:.55}90%{opacity:.25}100%{top:100%;opacity:0}}
+
+    .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px 6px 6px;border-radius:100px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.22);font-family:var(--fm);font-size:10.5px;font-weight:500;color:var(--em);letter-spacing:.09em;margin-bottom:24px;position:relative;overflow:hidden}
+    .pill::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(5,150,105,.06),transparent);animation:shimmer 3s ease-in-out infinite}
+    @keyframes shimmer{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+    .pdot{width:20px;height:20px;border-radius:50%;background:rgba(5,150,105,.15);border:1px solid rgba(5,150,105,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pdot::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--em);animation:pulse 2s ease infinite}
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.6)}}
+
+    .hero-title{font-family:var(--fd);font-size:clamp(44px,6.5vw,88px);font-weight:700;line-height:.98;letter-spacing:-.03em;margin-bottom:20px}
+    .lw{display:block;overflow:hidden}
+    .li{display:block;animation:lineUp .85s var(--smooth) both}
+    .lw:nth-child(2) .li{animation-delay:.1s}
+    .lw:nth-child(3) .li{animation-delay:.2s}
+    @keyframes lineUp{from{transform:translateY(108%);opacity:0}to{transform:translateY(0);opacity:1}}
+    .hero-desc{font-size:16.5px;color:var(--t1);max-width:480px;line-height:1.82;margin-bottom:34px;animation:fadeUp .8s .52s var(--smooth) both}
+    .hero-btns{display:flex;gap:12px;flex-wrap:wrap;animation:fadeUp .8s .64s var(--smooth) both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .hero-kpis{display:flex;gap:28px;flex-wrap:wrap;margin-top:44px;padding-top:28px;border-top:1px solid var(--b0);animation:fadeUp .8s .78s var(--smooth) both}
+    .kv{font-family:var(--fd);font-size:30px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+    .kl{font-family:var(--fm);font-size:10px;color:var(--t2);margin-top:4px;letter-spacing:.1em}
+
+    /* Dashboard preview card */
+    .dash-card{background:var(--bg1);border:1px solid var(--b1);border-radius:20px;overflow:hidden;animation:cardIn .9s .25s var(--smooth) both,cardFloat 8s 1.4s ease-in-out infinite;box-shadow:0 24px 72px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.04);position:relative}
+    .dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad)}
+    @keyframes cardIn{from{opacity:0;transform:translateY(32px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes cardFloat{0%,100%{transform:translateY(0)}45%{transform:translateY(-10px)}70%{transform:translateY(-4px)}}
+
+    .dc-topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 18px;border-bottom:1px solid var(--b0);
+      background:rgba(0,0,0,.25);
+    }
+    .dc-title{font-family:var(--fm);font-size:10px;color:var(--t2);letter-spacing:.14em}
+    .dc-live{display:flex;align-items:center;gap:5px;font-family:var(--fm);font-size:9.5px;color:var(--em);letter-spacing:.08em}
+    .dc-dot{width:5px;height:5px;border-radius:50%;background:var(--em);animation:pulse 1.6s ease infinite}
+
+    .dc-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:1px solid var(--b0)}
+    .dc-k{padding:14px;border-right:1px solid var(--b0);text-align:center}
+    .dc-k:last-child{border-right:none}
+    .dc-kv{font-family:var(--fd);font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+    .dc-kl{font-family:var(--fm);font-size:9px;color:var(--t2);letter-spacing:.09em;margin-top:3px}
+
+    .dc-mods{display:grid;grid-template-columns:1fr 1fr;gap:0}
+    .dc-m{
+      padding:14px 16px;border-right:1px solid var(--b0);border-bottom:1px solid var(--b0);
+      display:flex;align-items:center;gap:10px;
+      transition:background .25s;
+    }
+    .dc-m:nth-child(even){border-right:none}
+    .dc-m:nth-last-child(-n+2){border-bottom:none}
+    .dc-m:hover{background:rgba(124,58,237,.06)}
+    .dc-mi{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .dc-mn{font-family:var(--fd);font-size:12px;font-weight:600}
+    .dc-ms{font-family:var(--fm);font-size:9.5px;color:var(--t2);margin-top:1px;letter-spacing:.04em}
+    .dc-badge{margin-left:auto;font-family:var(--fm);font-size:9px;padding:2px 7px;border-radius:100px;letter-spacing:.06em}
+
+    /* ══ MARQUEE ══════════════════════════════════════════════ */
+    .mbar{padding:20px 0;overflow:hidden;border-top:1px solid var(--b0);border-bottom:1px solid var(--b0);position:relative;z-index:2;background:var(--bg1)}
+    .mbar::before,.mbar::after{content:'';position:absolute;top:0;bottom:0;width:100px;z-index:2;pointer-events:none}
+    .mbar::before{left:0;background:linear-gradient(90deg,var(--bg1),transparent)}
+    .mbar::after{right:0;background:linear-gradient(-90deg,var(--bg1),transparent)}
+    .mtrack{display:flex;gap:52px;width:max-content;animation:mscroll 26s linear infinite}
+    .mbar:hover .mtrack{animation-play-state:paused}
+    @keyframes mscroll{to{transform:translateX(-50%)}}
+    .mi{display:flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11px;color:var(--t2);white-space:nowrap;letter-spacing:.1em}
+    .md{width:3px;height:3px;border-radius:50%;background:var(--em);box-shadow:0 0 6px rgba(5,150,105,.7)}
+
+    /* ══ MODULES ══════════════════════════════════════════════ */
+    .mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
+    .mc{
+      padding:32px;background:var(--gl);border:1px solid var(--b0);border-radius:18px;
+      position:relative;overflow:hidden;
+      transition:transform .48s var(--spring),border-color .25s,box-shadow .3s;
+    }
+    .mc::before{content:'';position:absolute;left:0;top:20px;bottom:20px;width:2px;background:var(--grad);transform:scaleY(0);transform-origin:top;transition:transform .42s var(--smooth);border-radius:2px}
+    .mc:hover::before{transform:scaleY(1)}
+    .mc::after{content:'';position:absolute;bottom:18px;right:18px;width:24px;height:24px;border-bottom:1px solid var(--b0);border-right:1px solid var(--b0);opacity:0;transition:opacity .3s;border-radius:0 0 5px 0}
+    .mc:hover::after{opacity:1}
+    .mc:hover{transform:translateY(-5px);border-color:rgba(124,58,237,.18);box-shadow:0 16px 56px rgba(0,0,0,.35)}
+    .mc-glow{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(5,150,105,.08),transparent 50%);transition:opacity .3s}
+    .mc:hover .mc-glow{opacity:1}
+    .mc-num{position:absolute;top:20px;right:20px;font-family:var(--fm);font-size:10.5px;font-weight:600;color:var(--t2);letter-spacing:.12em}
+    .mc-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;transition:box-shadow .3s,transform .35s var(--spring)}
+    .mc:hover .mc-icon{transform:scale(1.08)}
+    .mc-title{font-family:var(--fd);font-size:18px;font-weight:700;margin-bottom:9px;letter-spacing:-.01em}
+    .mc-desc{font-size:13.5px;color:var(--t1);line-height:1.75;margin-bottom:18px}
+    .mc-chips{display:flex;flex-wrap:wrap;gap:5px}
+    .chip{padding:3px 10px;background:rgba(255,255,255,.03);border:1px solid var(--b0);border-radius:100px;font-family:var(--fm);font-size:10px;color:var(--t2);letter-spacing:.06em}
+
+    /* ══ FEATURE SPLIT ════════════════════════════════════════ */
+    .fs{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+    .fs.rev{direction:rtl}
+    .fs.rev>*{direction:ltr}
+
+    .flist{display:flex;flex-direction:column;gap:10px;margin-top:28px}
+    .fl{display:flex;gap:14px;align-items:flex-start;padding:18px 20px;background:var(--gl);border:1px solid var(--b0);border-radius:13px;transition:border-color .25s,transform .4s var(--spring),background .25s}
+    .fl:hover{border-color:rgba(5,150,105,.22);transform:translateX(5px);background:var(--gl2)}
+    .fl-ico{width:40px;height:40px;flex-shrink:0;border-radius:10px;background:var(--grad);display:flex;align-items:center;justify-content:center}
+    .fl-ico svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2}
+    .fl-t{font-family:var(--fd);font-weight:600;font-size:14.5px;margin-bottom:4px;letter-spacing:-.01em}
+    .fl-d{font-size:13px;color:var(--t1);line-height:1.7}
+
+    /* Visual panel */
+    .vis-panel{
+      background:var(--bg1);border:1px solid var(--b1);border-radius:18px;overflow:hidden;
+      box-shadow:0 16px 64px rgba(0,0,0,.5);
+    }
+    .vis-bar{display:flex;align-items:center;gap:6px;padding:12px 16px;border-bottom:1px solid var(--b0);background:rgba(0,0,0,.2)}
+    .vb-dot{width:9px;height:9px;border-radius:50%}
+    .vb-title{font-family:var(--fm);font-size:10px;color:var(--t2);letter-spacing:.12em;margin-left:8px}
+    .vis-content{padding:22px}
+
+    /* Calendar view */
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+    .cal-head{font-family:var(--fm);font-size:9px;color:var(--t2);text-align:center;letter-spacing:.08em;padding:4px 0}
+    .cal-day{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:11px;font-weight:500;color:var(--t2);transition:background .2s}
+    .cal-day.active{background:rgba(5,150,105,.18);color:var(--em);font-weight:700}
+    .cal-day.today{background:var(--grad);color:#fff;font-weight:700}
+    .cal-day.leave{background:rgba(245,158,11,.12);color:var(--am)}
+    .cal-day.holiday{background:rgba(239,68,68,.1);color:rgba(239,68,68,.7)}
+    .cal-day:hover:not(.today){background:rgba(255,255,255,.06)}
+
+    /* Payroll slip preview */
+    .slip{background:var(--bg2);border:1px solid var(--b0);border-radius:12px;padding:18px}
+    .slip-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--b0)}
+    .slip-name{font-family:var(--fd);font-weight:700;font-size:15px}
+    .slip-id{font-family:var(--fm);font-size:10px;color:var(--t2);letter-spacing:.08em;margin-top:3px}
+    .slip-amt{font-family:var(--fd);font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .slip-lbl{font-family:var(--fm);font-size:9px;color:var(--t2);letter-spacing:.08em;margin-top:2px;text-align:right}
+    .slip-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12.5px;border-bottom:1px solid var(--b0)}
+    .slip-row:last-child{border-bottom:none;font-weight:600;font-family:var(--fd)}
+    .slip-row span:last-child{font-family:var(--fm);font-size:12px;color:var(--t1)}
+
+    /* Org chart mini */
+    .org{text-align:center}
+    .org-node{display:inline-flex;flex-direction:column;align-items:center}
+    .org-box{padding:8px 16px;border-radius:9px;font-family:var(--fd);font-size:12px;font-weight:600;white-space:nowrap;margin:0 auto}
+    .org-line{width:1px;height:18px;background:var(--b1);margin:0 auto}
+    .org-row{display:flex;gap:8px;justify-content:center;position:relative}
+    .org-row::before{content:'';position:absolute;top:0;left:25%;right:25%;height:1px;background:var(--b1)}
+    .org-row-3::before{left:16%;right:16%}
+
+    /* ══ ANALYTICS ════════════════════════════════════════════ */
+    .analytics-grid{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:52px}
+    .ac{background:var(--gl);border:1px solid var(--b0);border-radius:18px;padding:28px;transition:border-color .25s}
+    .ac:hover{border-color:rgba(124,58,237,.18)}
+    .ac-t{font-family:var(--fd);font-weight:700;font-size:16px;margin-bottom:6px}
+    .ac-s{font-family:var(--fm);font-size:10.5px;color:var(--t2);letter-spacing:.07em;margin-bottom:22px}
+
+    /* Attendance bar chart */
+    .bar-chart{display:flex;align-items:flex-end;gap:6px;height:100px}
+    .bar{flex:1;border-radius:4px 4px 0 0;position:relative;transition:height .6s var(--smooth),background .3s}
+    .bar-lbl{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-family:var(--fm);font-size:9px;color:var(--t2);white-space:nowrap}
+    .bar-val{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-family:var(--fm);font-size:9px;color:var(--t0);white-space:nowrap}
+    .chart-axis{height:1px;background:var(--b0);margin-bottom:20px;margin-top:4px}
+
+    /* Donut */
+    .donut-wrap{display:flex;gap:22px;align-items:center;margin-top:8px}
+    .donut{width:110px;height:110px;border-radius:50%;flex-shrink:0;position:relative}
+    .donut svg{transform:rotate(-90deg)}
+    .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .donut-pct{font-family:var(--fd);font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+    .donut-sub{font-family:var(--fm);font-size:8.5px;color:var(--t2);letter-spacing:.07em;margin-top:2px}
+    .legend{display:flex;flex-direction:column;gap:9px;flex:1}
+    .leg{display:flex;align-items:center;gap:8px;font-size:12.5px}
+    .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+    .leg-lbl{color:var(--t1);font-size:12.5px}
+    .leg-val{margin-left:auto;font-family:var(--fm);font-size:11px;font-weight:600}
+
+    /* ══ TESTIMONIALS ═════════════════════════════════════════ */
+    .tgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
+    .tc{padding:26px;background:var(--gl);border:1px solid var(--b0);border-radius:18px;transition:transform .45s var(--spring),border-color .25s;position:relative;overflow:hidden}
+    .tc::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--grad);transform:scaleX(0);transform-origin:left;transition:transform .5s var(--smooth)}
+    .tc:hover::before{transform:scaleX(1)}
+    .tc:hover{transform:translateY(-4px);border-color:rgba(5,150,105,.18)}
+    .tstars{color:var(--am);font-size:14px;letter-spacing:2px;margin-bottom:13px}
+    .ttext{font-size:13.5px;color:var(--t1);line-height:1.78;margin-bottom:18px;font-style:italic}
+    .tauth{display:flex;align-items:center;gap:10px}
+    .tav{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+    .tn{font-family:var(--fd);font-weight:600;font-size:13px}
+    .tr{font-family:var(--fm);font-size:9.5px;color:var(--t2);margin-top:2px;letter-spacing:.06em}
+
+    /* ══ PRICING ══════════════════════════════════════════════ */
+    .price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:52px}
+    .pc{background:var(--gl);border:1px solid var(--b0);border-radius:18px;padding:32px;position:relative;transition:transform .45s var(--spring),border-color .25s,box-shadow .3s}
+    .pc.pop{background:var(--gl2);border-color:rgba(124,58,237,.3);box-shadow:0 0 0 1px rgba(124,58,237,.15)}
+    .pc:hover{transform:translateY(-5px)}
+    .pc.pop:hover{box-shadow:var(--gv)}
+    .pop-tag{position:absolute;top:-12px;left:50%;transform:translateX(-50%);padding:4px 16px;background:var(--grad);border-radius:100px;font-family:var(--fm);font-size:10px;font-weight:600;color:#fff;white-space:nowrap;letter-spacing:.07em}
+    .pc-plan{font-family:var(--fm);font-size:11px;color:var(--t2);letter-spacing:.14em;margin-bottom:12px}
+    .pc-price{font-family:var(--fd);font-size:38px;font-weight:700;line-height:1;margin-bottom:4px}
+    .pc-price span{font-size:16px;font-weight:400;color:var(--t2);font-family:var(--fb)}
+    .pc-desc{font-size:13.5px;color:var(--t1);margin-bottom:24px;line-height:1.6}
+    .pc-feats{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+    .pcf{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--t1)}
+    .pcf-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pcf-on .pcf-icon{background:rgba(5,150,105,.15);color:var(--em)}
+    .pcf-off{color:var(--t2)}
+    .pcf-off .pcf-icon{background:rgba(255,255,255,.04);color:var(--t2)}
+
+    /* ══ FAQ ══════════════════════════════════════════════════ */
+    .faq-sec{background:var(--bg)}
+    .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:52px}
+    .fitem{background:var(--gl);border:1px solid var(--b0);border-radius:14px;overflow:hidden;transition:border-color .25s}
+    .fitem.on{border-color:rgba(5,150,105,.3)}
+    .fq{padding:18px 20px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;font-family:var(--fd);font-weight:600;font-size:14px;line-height:1.42;touch-action:manipulation}
+    .ficon{width:21px;height:21px;flex-shrink:0;border-radius:50%;background:rgba(255,255,255,.05);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:14px;transition:transform .3s,background .25s,color .25s;margin-top:1px}
+    .fitem.on .ficon{transform:rotate(45deg);background:rgba(5,150,105,.18);color:var(--em)}
+    .fa{max-height:0;overflow:hidden;padding:0 20px;transition:max-height .45s cubic-bezier(0,1,.3,1),padding .3s}
+    .fitem.on .fa{max-height:280px;padding:0 20px 18px;transition:max-height .5s cubic-bezier(.5,0,.5,1),padding .3s}
+    .fa p{font-size:13.5px;color:var(--t1);line-height:1.78}
+
+    /* ══ CTA ══════════════════════════════════════════════════ */
+    .cta-sec{padding:112px 0;text-align:center;position:relative;z-index:2;overflow:hidden}
+    .cta-sec::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 55% 65% at 50% 100%,rgba(5,150,105,.16),transparent 56%),radial-gradient(ellipse 38% 40% at 0% 40%,rgba(124,58,237,.09),transparent 48%)}
+    .cta-sec::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 0%,transparent 100%);mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 0%,transparent 100%)}
+    .cta-t{font-family:var(--fd);font-size:clamp(36px,5.5vw,72px);font-weight:700;line-height:1.06;letter-spacing:-.025em;margin-bottom:18px;position:relative;z-index:2}
+    .cta-sub{font-size:16.5px;color:var(--t1);max-width:450px;margin:0 auto 34px;line-height:1.82;position:relative;z-index:2}
+    .cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:2}
+    .cta-note{margin-top:18px;font-family:var(--fm);font-size:10.5px;color:var(--t2);letter-spacing:.1em;position:relative;z-index:2}
+    .cta-phone{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:100px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.22);font-family:var(--fm);font-size:15px;font-weight:600;color:var(--em);margin-top:20px;letter-spacing:.05em;transition:background .25s,box-shadow .3s,transform .35s var(--spring);position:relative;z-index:2}
+    .cta-phone:hover{background:rgba(5,150,105,.15);box-shadow:0 0 40px rgba(5,150,105,.3);transform:translateY(-2px)}
+
+    /* ══ FOOTER ═══════════════════════════════════════════════ */
+    footer{background:var(--bg1);border-top:1px solid var(--b0);padding:64px 0 34px}
+    .fgrid2{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:44px}
+    .fbrand-d{font-family:var(--fm);font-size:12.5px;color:var(--t2);line-height:1.75;margin:14px 0 20px}
+    .socials{display:flex;gap:8px}
+    .sa{width:32px;height:32px;border-radius:9px;background:var(--gl);border:1px solid var(--b0);display:flex;align-items:center;justify-content:center;color:var(--t2);transition:border-color .25s,color .25s,background .25s,transform .3s var(--spring)}
+    .sa:hover{border-color:var(--em);color:var(--em);background:var(--ea);transform:translateY(-2px)}
+    .fct{font-family:var(--fm);font-weight:600;font-size:10.5px;margin-bottom:14px;color:var(--t2);letter-spacing:.12em}
+    .fcl{display:flex;flex-direction:column;gap:9px}
+    .fcl a,.fcl span{font-size:13px;color:var(--t2);transition:color .2s}
+    .fcl a:hover{color:var(--t0)}
+    .fbtm{padding-top:22px;border-top:1px solid var(--b0);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+    .fbtm-t{font-family:var(--fm);font-size:10.5px;color:var(--t2);letter-spacing:.06em}
+    .fbtm-l{display:flex;gap:18px}
+    .fbtm-l a{font-family:var(--fm);font-size:10.5px;color:var(--t2);transition:color .2s;letter-spacing:.05em}
+    .fbtm-l a:hover{color:var(--t0)}
+
+    /* ══ RESPONSIVE ═══════════════════════════════════════════ */
+    @media(max-width:1024px){.mod-grid{grid-template-columns:1fr 1fr}.analytics-grid{grid-template-columns:1fr}.price-grid{grid-template-columns:1fr 1fr}}
+    @media(max-width:900px){
+      body{cursor:auto}.cdot,.cring{display:none}
+      .nav-links,.btn-sm.dn-m{display:none}.burger{display:flex}
+      .hero-grid{grid-template-columns:1fr}.dash-card{display:none}
+      .fs{grid-template-columns:1fr!important;gap:40px}.fs.rev{direction:ltr}
+      .mod-grid{grid-template-columns:1fr}.tgrid{grid-template-columns:1fr}
+      .fgrid{grid-template-columns:1fr}.fgrid2{grid-template-columns:1fr 1fr;gap:32px}
+      .price-grid{grid-template-columns:1fr}.analytics-grid{grid-template-columns:1fr}
+    }
+    @media(max-width:540px){
+      .section{padding:80px 0}.wrap{padding:0 18px}
+      .fgrid2{grid-template-columns:1fr}.fbtm{flex-direction:column;text-align:center}
+      .hero-title{font-size:clamp(38px,10vw,68px)}
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="pc"></canvas>
+<div id="go" aria-hidden="true"></div>
+<div class="cdot" id="cdot" aria-hidden="true"></div>
+<div class="cring" id="cring" aria-hidden="true"></div>
+<div id="pb" aria-hidden="true"></div>
+
+<!-- NAV -->
+<nav id="nav" aria-label="Primary navigation">
+  <div class="wrap">
+    <div class="nav-row">
+      <a href="#" class="logo" aria-label="Aethrify HR home">
+        <img src="logo.svg" alt="" width="34" height="34">
+        Aethrify <span class="logo-badge">HR</span>
+      </a>
+      <div class="nav-links">
+        <a href="#modules">Modules</a>
+        <a href="#payroll">Payroll</a>
+        <a href="#analytics">Analytics</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a href="index.html" style="color:var(--t2)">← Main Site</a>
+      </div>
+      <a href="#cta" class="btn btn-p btn-sm dn-m">Request Demo →</a>
+      <button class="burger" id="burger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- MOBILE NAV -->
+<div id="mob" aria-hidden="true">
+  <a href="#modules" class="mnl">Modules</a>
+  <a href="#payroll" class="mnl">Payroll</a>
+  <a href="#analytics" class="mnl">Analytics</a>
+  <a href="#pricing" class="mnl">Pricing</a>
+  <a href="index.html" class="mnl" style="color:var(--t2)">← Main Site</a>
+  <a href="#cta" class="btn btn-p">Request Demo →</a>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-mesh" aria-hidden="true"></div>
+  <div class="hero-scan" aria-hidden="true"></div>
+  <div class="wrap" style="position:relative;z-index:2">
+    <div class="hero-grid">
+      <div>
+        <div class="pill">
+          <div class="pdot" aria-hidden="true"></div>
+          Trusted by 500+ HR teams across India
+        </div>
+        <h1 class="hero-title">
+          <span class="lw"><span class="li">Your People,</span></span>
+          <span class="lw"><span class="li gt">Perfectly</span></span>
+          <span class="lw"><span class="li">Managed.</span></span>
+        </h1>
+        <p class="hero-desc">Aethrify HR is a full-stack, cloud-based HRMS engineered for modern Indian enterprises. From onboarding to offboarding — payroll, attendance, leave, appraisals, and everything in between — unified in one intelligent platform.</p>
+        <div class="hero-btns">
+          <div class="mag"><a href="#cta" class="btn btn-p">Request Free Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></div>
+          <div class="mag"><a href="#modules" class="btn btn-g"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8" fill="currentColor" stroke="none"/></svg> Explore Modules</a></div>
+        </div>
+        <div class="hero-kpis">
+          <div><div class="kv" data-count="500" data-sfx="+">0</div><div class="kl">HR TEAMS</div></div>
+          <div><div class="kv" data-count="2" data-sfx="L+">0</div><div class="kl">EMPLOYEES MANAGED</div></div>
+          <div><div class="kv" data-count="99" data-sfx=".9%">0</div><div class="kl">PAYROLL ACCURACY</div></div>
+        </div>
+      </div>
+
+      <!-- Dashboard preview -->
+      <div>
+        <div class="dash-card">
+          <div class="dc-topbar">
+            <span class="dc-title">// AETHRIFY_HR · DASHBOARD</span>
+            <span class="dc-live"><span class="dc-dot"></span>LIVE</span>
+          </div>
+          <div class="dc-kpis">
+            <div class="dc-k">
+              <div class="dc-kv" data-count="248" data-sfx="">0</div>
+              <div class="dc-kl">TOTAL STAFF</div>
+            </div>
+            <div class="dc-k">
+              <div class="dc-kv" style="background:linear-gradient(135deg,#059669,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-count="97" data-sfx="%">0</div>
+              <div class="dc-kl">PRESENT TODAY</div>
+            </div>
+            <div class="dc-k">
+              <div class="dc-kv" style="background:linear-gradient(135deg,#F59E0B,#EF4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" data-count="7" data-sfx="">0</div>
+              <div class="dc-kl">ON LEAVE</div>
+            </div>
+          </div>
+          <div class="dc-mods">
+            <div class="dc-m">
+              <div class="dc-mi" style="background:rgba(124,58,237,.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9B6FF5" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+              <div><div class="dc-mn">Employees</div><div class="dc-ms">248 active</div></div>
+              <span class="dc-badge" style="background:rgba(124,58,237,.12);color:var(--vl);border:1px solid rgba(124,58,237,.2)">+3 new</span>
+            </div>
+            <div class="dc-m">
+              <div class="dc-mi" style="background:rgba(5,150,105,.12)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div>
+              <div><div class="dc-mn">Payroll</div><div class="dc-ms">₹42.6L this month</div></div>
+              <span class="dc-badge" style="background:rgba(5,150,105,.12);color:var(--em);border:1px solid rgba(5,150,105,.2)">DONE</span>
+            </div>
+            <div class="dc-m">
+              <div class="dc-mi" style="background:rgba(245,158,11,.1)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+              <div><div class="dc-mn">Attendance</div><div class="dc-ms">97.2% avg rate</div></div>
+            </div>
+            <div class="dc-m">
+              <div class="dc-mi" style="background:rgba(6,182,212,.1)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+              <div><div class="dc-mn">Appraisals</div><div class="dc-ms">Q2 cycle open</div></div>
+              <span class="dc-badge" style="background:rgba(6,182,212,.1);color:var(--cy);border:1px solid rgba(6,182,212,.2)">ACTIVE</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="mbar" aria-hidden="true">
+  <div class="mtrack">
+    <div class="mi"><span class="md"></span>Payroll Management</div>
+    <div class="mi"><span class="md"></span>Attendance Tracking</div>
+    <div class="mi"><span class="md"></span>Leave Management</div>
+    <div class="mi"><span class="md"></span>Recruitment & Onboarding</div>
+    <div class="mi"><span class="md"></span>Performance Appraisals</div>
+    <div class="mi"><span class="md"></span>Employee Self-Service</div>
+    <div class="mi"><span class="md"></span>Compliance & Statutory</div>
+    <div class="mi"><span class="md"></span>HR Analytics</div>
+    <div class="mi"><span class="md"></span>Document Management</div>
+    <div class="mi"><span class="md"></span>Payroll Management</div>
+    <div class="mi"><span class="md"></span>Attendance Tracking</div>
+    <div class="mi"><span class="md"></span>Leave Management</div>
+    <div class="mi"><span class="md"></span>Recruitment & Onboarding</div>
+    <div class="mi"><span class="md"></span>Performance Appraisals</div>
+    <div class="mi"><span class="md"></span>Employee Self-Service</div>
+    <div class="mi"><span class="md"></span>Compliance & Statutory</div>
+    <div class="mi"><span class="md"></span>HR Analytics</div>
+    <div class="mi"><span class="md"></span>Document Management</div>
+  </div>
+</div>
+
+<!-- MODULES -->
+<section class="section" id="modules">
+  <div class="wrap">
+    <div class="rv" style="text-align:center">
+      <div class="tag" style="justify-content:center">Core Modules</div>
+      <h2 class="h2" style="text-align:center">Everything HR in <span class="gt">One Platform</span></h2>
+      <p class="lead" style="margin:0 auto;text-align:center">Every module built to work together — no integrations, no data silos, no chaos.</p>
+    </div>
+    <div class="mod-grid">
+
+      <div class="mc rv d1" onmousemove="sg(event,this)">
+        <div class="mc-glow"></div><span class="mc-num">01</span>
+        <div class="mc-icon" style="background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.2)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9B6FF5" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3 class="mc-title">Employee Management</h3>
+        <p class="mc-desc">Centralised employee database with full lifecycle tracking — from offer letter to exit interview. Org hierarchy, role management, custom fields, and document vault.</p>
+        <div class="mc-chips"><span class="chip">Employee Profiles</span><span class="chip">Org Chart</span><span class="chip">Document Vault</span><span class="chip">Exit Management</span></div>
+      </div>
+
+      <div class="mc rv d2" onmousemove="sg(event,this)">
+        <div class="mc-glow"></div><span class="mc-num">02</span>
+        <div class="mc-icon" style="background:rgba(5,150,105,.1);border:1px solid rgba(5,150,105,.2)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+        </div>
+        <h3 class="mc-title">Payroll Processing</h3>
+        <p class="mc-desc">One-click payroll with auto CTC breakdown, PF, ESI, PT, TDS computation. Payslips generated and distributed automatically. 100% statutory compliance, every month.</p>
+        <div class="mc-chips"><span class="chip">PF / ESI / PT</span><span class="chip">TDS</span><span class="chip">Payslips</span><span class="chip">Bank Transfer</span><span class="chip">Form 16</span></div>
+      </div>
+
+      <div class="mc rv d3" onmousemove="sg(event,this)">
+        <div class="mc-glow"></div><span class="mc-num">03</span>
+        <div class="mc-icon" style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <h3 class="mc-title">Attendance & Time</h3>
+        <p class="mc-desc">Biometric, mobile GPS, and web check-in. Shift scheduling, overtime calculation, regularisation requests, and real-time dashboards. Integrates with any biometric device.</p>
+        <div class="mc-chips"><span class="chip">Biometric Sync</span><span class="chip">GPS Tracking</span><span class="chip">Shift Mgmt</span><span class="chip">Overtime</span></div>
+      </div>
+
+      <div class="mc rv d1" onmousemove="sg(event,this)">
+        <div class="mc-glow"></div><span class="mc-num">04</span>
+        <div class="mc-icon" style="background:rgba(6,182,212,.1);border:1px solid rgba(6,182,212,.2)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3 class="mc-title">Leave Management</h3>
+        <p class="mc-desc">Configurable leave policies — CL, EL, SL, ML, optional holidays. Multi-level approval workflows, accrual tracking, and carry-forward logic. Employees apply on mobile.</p>
+        <div class="mc-chips"><span class="chip">Custom Policies</span><span class="chip">Approval Flows</span><span class="chip">Accruals</span><span class="chip">Holiday Calendar</span></div>
+      </div>
+
+      <div class="mc rv d2" onmousemove="sg(event,this)">
+        <div class="mc-glow"></div><span class="mc-num">05</span>
+        <div class="mc-icon" style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.18)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h3 class="mc-title">Performance & Appraisals</h3>
+        <p class="mc-desc">360° feedback, KRA/KPI goal setting, mid-year reviews, and annual appraisal cycles. Bell-curve normalization, rating calibration, and increment workflow — all automated.</p>
+        <div class="mc-chips"><span class="chip">Goal Setting</span><span class="chip">360° Feedback</span><span class="chip">Bell Curve</span><span class="chip">Increments</span></div>
+      </div>
+
+      <div class="mc rv d3" onmousemove="sg(event,this)">
+        <div class="mc-glow"></div><span class="mc-num">06</span>
+        <div class="mc-icon" style="background:rgba(155,111,245,.1);border:1px solid rgba(155,111,245,.2)">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9B6FF5" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <h3 class="mc-title">Recruitment & ATS</h3>
+        <p class="mc-desc">Post jobs, screen applications, schedule interviews, and onboard hires — all inside Aethrify HR. Applicant tracking with pipeline views, auto-offer letters, and document collection.</p>
+        <div class="mc-chips"><span class="chip">Job Postings</span><span class="chip">ATS Pipeline</span><span class="chip">Interview Scheduler</span><span class="chip">Onboarding</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PAYROLL DEEP DIVE -->
+<section class="section" id="payroll" style="background:var(--bg1)">
+  <div class="wrap">
+    <div class="rv" style="text-align:center;margin-bottom:56px">
+      <div class="tag" style="justify-content:center">Payroll Engine</div>
+      <h2 class="h2" style="text-align:center">Payroll That <span class="gt">Never Fails</span></h2>
+      <p class="lead" style="margin:0 auto;text-align:center">India-compliant payroll processing with PF, ESI, PT, and TDS — computed automatically every cycle.</p>
+    </div>
+
+    <!-- Feature split 1 -->
+    <div class="fs rv" style="margin-bottom:72px">
+      <div>
+        <div class="tag">Payslip Generation</div>
+        <h3 class="h2" style="font-size:clamp(26px,3.5vw,44px)">One Click.<br><span class="gt">Every Employee.</span></h3>
+        <p class="lead" style="margin-bottom:28px">Run payroll for your entire organisation in seconds. Auto-compute gross, deductions, and net pay. Payslips are generated, emailed, and archived — zero manual effort.</p>
+        <div class="flist">
+          <div class="fl rv d1"><div class="fl-ico"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="fl-t">Auto CTC Breakdown</div><div class="fl-d">Basic, HRA, LTA, Special Allowance — computed from offer letter template automatically.</div></div></div>
+          <div class="fl rv d2"><div class="fl-ico"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="fl-t">100% Statutory Compliance</div><div class="fl-d">PF, ESI, PT, LWF, and TDS — updated with every budget and regulatory change.</div></div></div>
+          <div class="fl rv d3"><div class="fl-ico"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div><div class="fl-t">Bank Transfer Integration</div><div class="fl-d">Generate bank file (NEFT/RTGS) or direct integration with your business bank account.</div></div></div>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="vis-panel">
+          <div class="vis-bar">
+            <div class="vb-dot" style="background:#EF4444"></div>
+            <div class="vb-dot" style="background:#F59E0B"></div>
+            <div class="vb-dot" style="background:#10B981"></div>
+            <span class="vb-title">PAYSLIP — JUNE 2025</span>
+          </div>
+          <div class="vis-content">
+            <div class="slip">
+              <div class="slip-head">
+                <div><div class="slip-name">Rahul Sharma</div><div class="slip-id">EMP-0042 · SENIOR ENGINEER</div></div>
+                <div style="text-align:right"><div class="slip-amt">₹1,24,500</div><div class="slip-lbl">NET TAKE HOME</div></div>
+              </div>
+              <div class="slip-row"><span>Basic Salary</span><span>₹70,000</span></div>
+              <div class="slip-row"><span>HRA</span><span>₹28,000</span></div>
+              <div class="slip-row"><span>Special Allowance</span><span>₹42,000</span></div>
+              <div class="slip-row" style="color:var(--re)"><span>PF Deduction</span><span style="color:var(--re)">- ₹8,400</span></div>
+              <div class="slip-row" style="color:var(--re)"><span>TDS</span><span style="color:var(--re)">- ₹7,100</span></div>
+              <div class="slip-row"><span style="color:var(--t0)">Net Pay</span><span style="color:var(--em)">₹1,24,500</span></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <div style="flex:1;padding:10px 14px;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.2);border-radius:9px;font-family:var(--fm);font-size:10px;color:var(--em);letter-spacing:.06em;text-align:center">✓ PAYSLIP SENT</div>
+              <div style="flex:1;padding:10px 14px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);border-radius:9px;font-family:var(--fm);font-size:10px;color:var(--vl);letter-spacing:.06em;text-align:center">↓ DOWNLOAD PDF</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature split 2 -->
+    <div class="fs rev rv">
+      <div>
+        <div class="tag">Attendance Calendar</div>
+        <h3 class="h2" style="font-size:clamp(26px,3.5vw,44px)">Real-Time <span class="gt">Workforce View</span></h3>
+        <p class="lead" style="margin-bottom:28px">See who's present, on leave, or absent — at a glance. Live dashboard updates as employees check in from biometric, mobile, or web.</p>
+        <div class="flist">
+          <div class="fl rv d1"><div class="fl-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="fl-t">Live Check-In Feed</div><div class="fl-d">Real-time punches from biometric devices, mobile GPS, and web portal — unified in one view.</div></div></div>
+          <div class="fl rv d2"><div class="fl-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div><div class="fl-t">Shift & Roster Management</div><div class="fl-d">Create rotational shifts, assign employees, and get automated alerts for late arrivals and overtime.</div></div></div>
+          <div class="fl rv d3"><div class="fl-ico"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></div><div><div class="fl-t">Regularisation Requests</div><div class="fl-d">Employees raise missed-punch requests directly from their app — managers approve in one tap.</div></div></div>
+        </div>
+      </div>
+      <div class="rv">
+        <div class="vis-panel">
+          <div class="vis-bar">
+            <div class="vb-dot" style="background:#EF4444"></div>
+            <div class="vb-dot" style="background:#F59E0B"></div>
+            <div class="vb-dot" style="background:#10B981"></div>
+            <span class="vb-title">ATTENDANCE — JUNE 2025</span>
+          </div>
+          <div class="vis-content">
+            <div class="cal-grid">
+              <div class="cal-head">M</div><div class="cal-head">T</div><div class="cal-head">W</div><div class="cal-head">T</div><div class="cal-head">F</div><div class="cal-head">S</div><div class="cal-head">S</div>
+              <div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day"></div><div class="cal-day holiday">1</div><div class="cal-day holiday">2</div>
+              <div class="cal-day active">3</div><div class="cal-day active">4</div><div class="cal-day active">5</div><div class="cal-day active">6</div><div class="cal-day active">7</div><div class="cal-day holiday">8</div><div class="cal-day holiday">9</div>
+              <div class="cal-day active">10</div><div class="cal-day active">11</div><div class="cal-day leave">12</div><div class="cal-day active">13</div><div class="cal-day active">14</div><div class="cal-day holiday">15</div><div class="cal-day holiday">16</div>
+              <div class="cal-day active">17</div><div class="cal-day today">18</div><div class="cal-day">19</div><div class="cal-day">20</div><div class="cal-day">21</div><div class="cal-day holiday">22</div><div class="cal-day holiday">23</div>
+            </div>
+            <div style="display:flex;gap:14px;margin-top:16px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:9.5px;color:var(--t2)"><div style="width:10px;height:10px;border-radius:3px;background:rgba(5,150,105,.18)"></div>Present</div>
+              <div style="display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:9.5px;color:var(--t2)"><div style="width:10px;height:10px;border-radius:3px;background:rgba(245,158,11,.12)"></div>Leave</div>
+              <div style="display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:9.5px;color:var(--t2)"><div style="width:10px;height:10px;border-radius:3px;background:rgba(239,68,68,.1)"></div>Holiday</div>
+              <div style="display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:9.5px;color:var(--t2)"><div style="width:10px;height:10px;border-radius:3px;background:var(--grad)"></div>Today</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ANALYTICS -->
+<section class="section" id="analytics">
+  <div class="wrap">
+    <div class="rv">
+      <div class="tag">HR Intelligence</div>
+      <h2 class="h2">Data-Driven <span class="gt">HR Decisions</span></h2>
+      <p class="lead">Real-time dashboards and predictive reports that turn your workforce data into strategic advantage.</p>
+    </div>
+    <div class="analytics-grid">
+      <div class="ac rv d1">
+        <div class="ac-t">Monthly Attendance Rate</div>
+        <div class="ac-s">DEPARTMENT BREAKDOWN · JUNE 2025</div>
+        <div class="bar-chart" id="bar-chart" style="margin-bottom:24px">
+          <!-- bars injected by JS -->
+        </div>
+        <div class="chart-axis"></div>
+      </div>
+      <div class="ac rv d2">
+        <div class="ac-t">Leave Distribution</div>
+        <div class="ac-s">CURRENT MONTH</div>
+        <div class="donut-wrap">
+          <div class="donut">
+            <svg viewBox="0 0 36 36" width="110" height="110">
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="3"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3" stroke-dasharray="52 48" stroke-linecap="round"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#7C3AED" stroke-width="3" stroke-dasharray="20 80" stroke-dashoffset="-52" stroke-linecap="round"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F59E0B" stroke-width="3" stroke-dasharray="16 84" stroke-dashoffset="-72" stroke-linecap="round"/>
+              <circle cx="18" cy="18" r="15.9" fill="none" stroke="#06B6D4" stroke-width="3" stroke-dasharray="12 88" stroke-dashoffset="-88" stroke-linecap="round"/>
+            </svg>
+            <div class="donut-center"><div class="donut-pct">7</div><div class="donut-sub">ON LEAVE</div></div>
+          </div>
+          <div class="legend">
+            <div class="leg"><div class="leg-dot" style="background:#059669"></div><span class="leg-lbl">Casual Leave</span><span class="leg-val" style="color:var(--em)">4</span></div>
+            <div class="leg"><div class="leg-dot" style="background:#7C3AED"></div><span class="leg-lbl">Earned Leave</span><span class="leg-val" style="color:var(--vl)">2</span></div>
+            <div class="leg"><div class="leg-dot" style="background:#F59E0B"></div><span class="leg-lbl">Sick Leave</span><span class="leg-val" style="color:var(--am)">1</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section" id="testimonials" style="background:var(--bg1)">
+  <div class="wrap">
+    <div class="rv" style="text-align:center;margin-bottom:52px">
+      <div class="tag" style="justify-content:center">Client Stories</div>
+      <h2 class="h2" style="text-align:center">Loved by <span class="gt">HR Teams</span></h2>
+    </div>
+    <div class="tgrid">
+      <div class="tc rv d1">
+        <div class="tstars">★★★★★</div>
+        <p class="ttext">"Payroll used to take us 3 days. With Aethrify HR, it runs in under 20 minutes. The statutory compliance is always up to date — we haven't had a single PF error in 18 months."</p>
+        <div class="tauth"><div class="tav" style="background:var(--grad)">N</div><div><div class="tn">Nisha Verma</div><div class="tr">HEAD OF HR · NEXALOGISTICS</div></div></div>
+      </div>
+      <div class="tc rv d2">
+        <div class="tstars">★★★★★</div>
+        <p class="ttext">"The attendance integration with our biometric machines was live in one day. The mobile app for employees is beautiful — they love applying for leave from their phones."</p>
+        <div class="tauth"><div class="tav" style="background:linear-gradient(135deg,#059669,#06B6D4)">R</div><div><div class="tn">Rajesh Kumar</div><div class="tr">OPERATIONS HEAD · STEADFAST MFG</div></div></div>
+      </div>
+      <div class="tc rv d3">
+        <div class="tstars">★★★★★</div>
+        <p class="ttext">"The appraisal module transformed our review cycle. 360° feedback, goal tracking, and the final increment workflow — everything in one place. Our managers call it a game-changer."</p>
+        <div class="tauth"><div class="tav" style="background:linear-gradient(135deg,#7C3AED,#06B6D4)">S</div><div><div class="tn">Sunita Pillai</div><div class="tr">CHRO · BRIGHTEDGE FINTECH</div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing">
+  <div class="wrap">
+    <div class="rv" style="text-align:center">
+      <div class="tag" style="justify-content:center">Pricing</div>
+      <h2 class="h2" style="text-align:center">Simple, <span class="gt">Transparent Pricing</span></h2>
+      <p class="lead" style="margin:0 auto;text-align:center">Pay per employee. No setup fees. No surprise invoices.</p>
+    </div>
+    <div class="price-grid">
+      <div class="pc rv d1">
+        <div class="pc-plan">STARTER</div>
+        <div class="pc-price">₹79<span> /employee/mo</span></div>
+        <p class="pc-desc">For startups and small teams getting their HR in order.</p>
+        <div class="pc-feats">
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Employee Profiles & Org Chart</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Payroll Processing (up to 50 emp)</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Leave Management</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Basic Attendance Tracking</div>
+          <div class="pcf pcf-off"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>Performance Appraisals</div>
+          <div class="pcf pcf-off"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>Recruitment ATS</div>
+        </div>
+        <div class="mag"><a href="#cta" class="btn btn-g" style="width:100%;justify-content:center">Get Started →</a></div>
+      </div>
+
+      <div class="pc pop rv d2">
+        <span class="pop-tag">MOST POPULAR</span>
+        <div class="pc-plan">GROWTH</div>
+        <div class="pc-price">₹149<span> /employee/mo</span></div>
+        <p class="pc-desc">For growing companies that need the complete HR suite.</p>
+        <div class="pc-feats">
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Everything in Starter</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Biometric / GPS Attendance</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Performance Appraisals (360°)</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Recruitment ATS</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>HR Analytics Dashboard</div>
+          <div class="pcf pcf-off"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>Custom Integrations / API</div>
+        </div>
+        <div class="mag"><a href="#cta" class="btn btn-v" style="width:100%;justify-content:center">Get Started →</a></div>
+      </div>
+
+      <div class="pc rv d3">
+        <div class="pc-plan">ENTERPRISE</div>
+        <div class="pc-price" style="font-size:28px">Custom<span style="font-size:14px"> pricing</span></div>
+        <p class="pc-desc">For large organisations with complex, multi-entity requirements.</p>
+        <div class="pc-feats">
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Everything in Growth</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Multi-Entity / Multi-Branch</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Custom API Integrations</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>Dedicated Account Manager</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>White-Label Option</div>
+          <div class="pcf pcf-on"><div class="pcf-icon"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>SLA + 24/7 Support</div>
+        </div>
+        <div class="mag"><a href="#cta" class="btn btn-g" style="width:100%;justify-content:center">Contact Sales →</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section faq-sec" id="faq">
+  <div class="wrap">
+    <div class="rv" style="text-align:center">
+      <div class="tag" style="justify-content:center">FAQ</div>
+      <h2 class="h2" style="text-align:center">Questions About <span class="gt">Aethrify HR</span></h2>
+    </div>
+    <div class="fgrid">
+      <div class="fitem rv d1"><div class="fq" onclick="faq(this)" tabindex="0" aria-expanded="false">Is Aethrify HR compliant with Indian labour laws?<div class="ficon">+</div></div><div class="fa"><p>Yes. Aethrify HR is built for Indian compliance — PF, ESI, Professional Tax, LWF, and TDS are computed automatically. We update the system with every budget change and regulatory update so you're always compliant. Form 16, ECR, and all statutory challans are generated in one click.</p></div></div>
+      <div class="fitem rv d2"><div class="fq" onclick="faq(this)" tabindex="0" aria-expanded="false">Can it integrate with our existing biometric devices?<div class="ficon">+</div></div><div class="fa"><p>Yes — Aethrify HR integrates with all major biometric brands (ZKTeco, eSSL, Suprema, Realtime) via API and USB pull. If you have a proprietary device, our team provides a custom integration within 5–7 working days.</p></div></div>
+      <div class="fitem rv d3"><div class="fq" onclick="faq(this)" tabindex="0" aria-expanded="false">How long does implementation take?<div class="ficon">+</div></div><div class="fa"><p>Most companies are live within 5–7 business days. We handle data migration (from Excel, Tally, or any existing HRMS), configuration, and provide training for your HR team. Onboarding is fully managed — you don't need any technical expertise.</p></div></div>
+      <div class="fitem rv d4"><div class="fq" onclick="faq(this)" tabindex="0" aria-expanded="false">Can employees access their data on mobile?<div class="ficon">+</div></div><div class="fa"><p>Absolutely. Aethrify HR includes a fully featured employee self-service (ESS) mobile app for Android and iOS. Employees can view payslips, apply for leave, check attendance, raise requests, and submit expense claims — all from their phone.</p></div></div>
+      <div class="fitem rv d1"><div class="fq" onclick="faq(this)" tabindex="0" aria-expanded="false">Does it support multiple branches or companies?<div class="ficon">+</div></div><div class="fa"><p>Yes — the Enterprise plan supports multi-entity, multi-branch setups with separate policies, payroll cycles, and reporting per entity. You get a consolidated group view alongside individual company dashboards. Inter-company transfers are handled natively.</p></div></div>
+      <div class="fitem rv d2"><div class="fq" onclick="faq(this)" tabindex="0" aria-expanded="false">How is our data protected?<div class="ficon">+</div></div><div class="fa"><p>All data is encrypted at rest (AES-256) and in transit (TLS 1.3). Role-based access control ensures employees only see their own data. We are hosted on ISO 27001-certified infrastructure with daily backups and 99.9% uptime SLA. DPDP Act compliant.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec" id="cta">
+  <div class="wrap" style="position:relative;z-index:2">
+    <div class="rv">
+      <div class="tag" style="justify-content:center">Get Started Today</div>
+      <h2 class="cta-t">Your Entire HR,<br><span class="gt">Automated.</span></h2>
+      <p class="cta-sub">Book a free 30-minute demo and see Aethrify HR running with your own workforce data — no commitment required.</p>
+      <div class="cta-btns">
+        <div class="mag"><a href="mailto:hr@aethrify.xyz" class="btn btn-p" style="padding:16px 36px;font-size:15px">Book Free Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a></div>
+        <div class="mag"><a href="mailto:sales@aethrify.xyz" class="btn btn-g" style="padding:16px 36px;font-size:15px">Talk to Sales</a></div>
+      </div>
+      <a href="tel:+919318307567" class="cta-phone">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.27h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.67a16 16 0 0 0 7.59 7.59l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 23 18z"/></svg>
+        +91 93183 07567
+      </a>
+      <p class="cta-note">30-MIN DEMO · NO CREDIT CARD · HR@AETHRIFY.XYZ</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="fgrid2">
+      <div>
+        <a href="#" class="logo" style="display:inline-flex;margin-bottom:12px">
+          <img src="logo.svg" alt="" width="32" height="32" style="border-radius:8px">
+          Aethrify <span class="logo-badge" style="margin-left:6px">HR</span>
+        </a>
+        <p class="fbrand-d">Intelligent HRMS for modern Indian enterprises. Payroll, attendance, leave, appraisals, and recruitment — one platform, zero complexity.</p>
+        <div class="socials">
+          <a href="#" class="sa" aria-label="X"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+          <a href="#" class="sa" aria-label="LinkedIn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <div class="fct">MODULES</div>
+        <div class="fcl"><a href="#">Employee Mgmt</a><a href="#">Payroll</a><a href="#">Attendance</a><a href="#">Leave Mgmt</a><a href="#">Appraisals</a><a href="#">Recruitment</a></div>
+      </div>
+      <div>
+        <div class="fct">COMPANY</div>
+        <div class="fcl"><a href="index.html">Aethrify Main</a><a href="#">About</a><a href="#">Security</a><a href="#">Compliance</a><a href="#">Blog</a><a href="#cta">Contact</a></div>
+      </div>
+      <div>
+        <div class="fct">CONTACT</div>
+        <div class="fcl">
+          <a href="mailto:hr@aethrify.xyz">hr@aethrify.xyz</a>
+          <a href="mailto:sales@aethrify.xyz">sales@aethrify.xyz</a>
+          <a href="tel:+919318307567">+91 93183 07567</a>
+          <span style="font-family:var(--fm);font-size:10.5px;letter-spacing:.06em;margin-top:4px">MON–SAT · 10AM–7PM IST</span>
+        </div>
+      </div>
+    </div>
+    <div class="fbtm">
+      <div class="fbtm-t">© 2025 AETHRIFY INNOVATION · AETHRIFY HR · ALL RIGHTS RESERVED</div>
+      <div class="fbtm-l"><a href="#">PRIVACY</a><a href="#">TERMS</a><a href="#">SECURITY</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+'use strict';
+/* ── PARTICLES ── */
+(function(){
+  const c=document.getElementById('pc');if(!c)return;
+  const ctx=c.getContext('2d');let W,H,pts=[];
+  const resize=()=>{W=c.width=innerWidth;H=c.height=innerHeight};
+  resize();window.addEventListener('resize',resize,{passive:true});
+  class P{constructor(){this.reset(true)}reset(init){this.x=Math.random()*W;this.y=Math.random()*H;this.vx=(Math.random()-.5)*.3;this.vy=(Math.random()-.5)*.3;this.r=Math.random()*1.3+.4;this.a=init?Math.random():.8}update(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset(false)}draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);ctx.fillStyle=`rgba(5,150,105,${this.a*.45})`;ctx.fill()}}
+  for(let i=0;i<70;i++)pts.push(new P());
+  const draw=()=>{ctx.clearRect(0,0,W,H);pts.forEach(p=>{p.update();p.draw()});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<120){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(5,150,105,${.12*(1-d/120)})`;ctx.lineWidth=.5;ctx.stroke()}}requestAnimationFrame(draw)};
+  draw();
+})();
+
+/* ── CURSOR ── */
+(function(){
+  const dot=document.getElementById('cdot'),ring=document.getElementById('cring');if(!dot||!ring)return;
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;dot.style.left=mx+'px';dot.style.top=my+'px'},{passive:true});
+  (function ar(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(ar)})();
+  document.querySelectorAll('a,button,.mc,.tc,.fitem,.fl,.pc').forEach(el=>{el.addEventListener('mouseenter',()=>{dot.classList.add('hov');ring.classList.add('hov')});el.addEventListener('mouseleave',()=>{dot.classList.remove('hov');ring.classList.remove('hov')})});
+})();
+
+/* ── PROGRESS + NAV ── */
+const pb=document.getElementById('pb'),nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>{pb.style.width=(scrollY/(document.body.scrollHeight-innerHeight)*100)+'%';nav.classList.toggle('stuck',scrollY>60)},{passive:true});
+
+/* ── MOBILE NAV ── */
+const burger=document.getElementById('burger'),mob=document.getElementById('mob');
+burger.addEventListener('click',()=>{const o=burger.classList.toggle('on');mob.classList.toggle('on',o);burger.setAttribute('aria-expanded',String(o));mob.setAttribute('aria-hidden',String(!o))});
+document.querySelectorAll('.mnl,#mob .btn').forEach(l=>l.addEventListener('click',()=>{burger.classList.remove('on');mob.classList.remove('on');burger.setAttribute('aria-expanded','false');mob.setAttribute('aria-hidden','true')}));
+
+/* ── REVEAL ── */
+const rvObs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');rvObs.unobserve(e.target)}})},{threshold:.08,rootMargin:'0px 0px -24px 0px'});
+document.querySelectorAll('.rv').forEach(el=>rvObs.observe(el));
+
+/* ── COUNTERS ── */
+function runCnt(el){const t=+el.dataset.count,sfx=el.dataset.sfx||'',dur=1800,t0=performance.now();(function tick(now){const p=Math.min((now-t0)/dur,1),v=Math.floor((1-Math.pow(1-p,3))*t);el.textContent=v+sfx;if(p<1)requestAnimationFrame(tick);else el.textContent=t+sfx})(performance.now())}
+const cntObs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){runCnt(e.target);cntObs.unobserve(e.target)}})},{threshold:.7});
+document.querySelectorAll('[data-count]').forEach(el=>cntObs.observe(el));
+
+/* ── FAQ ── */
+function faq(q){const fi=q.closest('.fitem'),open=fi.classList.contains('on');document.querySelectorAll('.fitem').forEach(f=>{f.classList.remove('on');f.querySelector('.fq').setAttribute('aria-expanded','false')});if(!open){fi.classList.add('on');q.setAttribute('aria-expanded','true')}}
+document.querySelectorAll('.fq').forEach(q=>q.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();faq(q)}}));
+
+/* ── MODULE GLOW ── */
+function sg(e,c){const r=c.getBoundingClientRect();c.style.setProperty('--gx',((e.clientX-r.left)/r.width*100)+'%');c.style.setProperty('--gy',((e.clientY-r.top)/r.height*100)+'%')}
+
+/* ── MAGNETIC ── */
+document.querySelectorAll('.mag').forEach(m=>{m.addEventListener('mousemove',e=>{const r=m.getBoundingClientRect(),x=(e.clientX-r.left-r.width/2)*.22,y=(e.clientY-r.top-r.height/2)*.22;m.style.transform=`translate(${x}px,${y}px)`});m.addEventListener('mouseleave',()=>{m.style.transform=''})});
+
+/* ── TEXT SCRAMBLE ── */
+(function(){const els=document.querySelectorAll('.li'),chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ01';els.forEach(el=>{const final=el.textContent;let f=0,max=15;const id=setInterval(()=>{if(f>=max){el.textContent=final;clearInterval(id);return}el.textContent=final.split('').map((c,i)=>{if(i<(f/max)*final.length)return c;return c===' '?' ':chars[Math.floor(Math.random()*chars.length)]}).join('');f++},38)})})();
+
+/* ── BAR CHART ── */
+(function(){
+  const data=[
+    {dept:'Eng',pct:96,col:'#9B6FF5'},{dept:'Sales',pct:88,col:'#059669'},
+    {dept:'Ops',pct:94,col:'#06B6D4'},{dept:'HR',pct:100,col:'#10B981'},
+    {dept:'Fin',pct:91,col:'#F59E0B'},{dept:'Mktg',pct:85,col:'#7C3AED'}
+  ];
+  const wrap=document.getElementById('bar-chart');
+  if(!wrap)return;
+  data.forEach(d=>{
+    const bar=document.createElement('div');
+    bar.className='bar';bar.style.background=d.col+'33';bar.style.border=`1px solid ${d.col}44`;
+    bar.style.height='0';bar.style.position='relative';
+    bar.innerHTML=`<span class="bar-lbl">${d.dept}</span><span class="bar-val">${d.pct}%</span>`;
+    wrap.appendChild(bar);
+    const obs=new IntersectionObserver(es=>{if(es[0].isIntersecting){setTimeout(()=>{bar.style.height=d.pct+'%';bar.style.background=d.col+'22';bar.style.transition='height .8s cubic-bezier(.16,1,.3,1)'},100);obs.unobserve(bar)}},{threshold:.1});
+    obs.observe(bar);
+  });
+})();
+
+/* ── SMOOTH SCROLL ── */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}})});
+</script>
+</body>
+</html>
