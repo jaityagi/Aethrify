@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <url>
+    <loc>https://aethrify.xyz/</loc>
+    <lastmod>2025-06-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://aethrify.xyz/logo.svg</image:loc>
+      <image:title>Aethrify Innovation — Web Development, HRMS &amp; Digital Marketing India</image:title>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://aethrify.xyz/hrms.html</loc>
+    <lastmod>2025-06-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <image:image>
+      <image:loc>https://aethrify.xyz/logo.svg</image:loc>
+      <image:title>Aethrify HR — Best HRMS Software India | Payroll, Attendance &amp; Leave Management</image:title>
+    </image:image>
+  </url>
+
+</urlset>

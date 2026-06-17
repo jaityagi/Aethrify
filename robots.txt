@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /quotation.html
+
+# Sitemap
+Sitemap: https://aethrify.xyz/sitemap.xml
+
+# Crawl-delay for bots (optional, good practice)
+Crawl-delay: 1
+
+# Block AI training scrapers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
